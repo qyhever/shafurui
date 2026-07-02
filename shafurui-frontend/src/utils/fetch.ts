@@ -232,7 +232,10 @@ function sendReqByXhr<T = any>(options: XhrRequestOptions): Promise<T> {
 
     for (const key in headers) {
       if (Object.prototype.hasOwnProperty.call(headers, key)) {
-        xhr.setRequestHeader(key, headers[key])
+        const value = headers[key]
+        if (value !== undefined) {
+          xhr.setRequestHeader(key, value)
+        }
       }
     }
 

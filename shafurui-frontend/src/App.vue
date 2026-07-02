@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 // import UpdatePopup from '@/components/update-popup'
 defineOptions({
   name: 'App',

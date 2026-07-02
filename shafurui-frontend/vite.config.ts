@@ -26,10 +26,10 @@ export default defineConfig(({ mode, command }) => {
       port: 5175,
       // host: '0.0.0.0',
       proxy: {
-        '/ggfftz/api': {
-          target: 'http://localhost:6300',
+        '/sfr/api': {
+          target: 'http://localhost:6305',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/ggfftz/, ''),
+          rewrite: (path) => path.replace(/^\/sfr/, ''),
         },
       },
     },

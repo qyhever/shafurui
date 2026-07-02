@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { message } from 'antd'
+import { MessagePlugin } from 'tdesign-vue-next'
 import { useUserStore } from '@/stores/user'
-import { navigateTo } from './navigate'
+import router from '@/router'
 import { request as http } from './fetch'
 import type { RequestOptions } from './fetch'
 
 const defaultOptions = {
-  baseURL: '/ggfftz/api',
+  baseURL: '/sfr/api',
 }
+const SUCCESS_CODE = 1000
 
 // Token 刷新状态管理
 let refreshPromise: Promise<string> | null = null
@@ -18,12 +19,10 @@ let refreshPromise: Promise<string> | null = null
  */
 function getRefreshTokenPromise(): Promise<string> {
   if (!refreshPromise) {
-    refreshPromise = useUserStore
-      .getState()
-      .refreshAccessToken()
-      .finally(() => {
-        refreshPromise = null
-      })
+    const userStore = useUserStore()
+    refreshPromise = userStore.refreshAccessToken().finally(() => {
+      refreshPromise = null
+    })
   }
   return refreshPromise
 }
@@ -43,7 +42,8 @@ function handleRequestHeader(configHeaders?: RequestOptions['headers']) {
   const headers = {
     ...(configHeaders || {}),
   }
-  const token = useUserStore.getState().accessToken
+  const userStore = useUserStore()
+  const token = userStore.accessToken
   if (token) {
     headers.Authorization = `Bearer ${token}`
   }
@@ -76,11 +76,11 @@ function requestThenEnd(param: IRequestThenEndParam) {
   const { response: responseData } = param
   // console.log('responseData: ', responseData)
   // success code
-  if (responseData.code === 1000) {
+  if (responseData.code === SUCCESS_CODE) {
     return responseData.data
   }
-  message.destroy()
-  message.warning(responseData.message || '操作失败')
+  MessagePlugin.closeAll()
+  MessagePlugin.warning(responseData.message || '操作失败')
   return Promise.reject(responseData)
 }
 
@@ -103,11 +103,12 @@ async function requestCatchEnd(
     // 401 错误：尝试刷新 token 并重试
     if (status === 401 && originalOptions) {
       // 判断是否是刷新 token 接口本身失败
-      if (originalOptions.url?.includes('/auth/refreshToken')) {
-        message.destroy()
-        message.error('登录已过期，请重新登录')
-        useUserStore.getState().logout()
-        navigateTo('/signin', { replace: true })
+      if (originalOptions.url?.includes('/auth/refresh')) {
+        MessagePlugin.closeAll()
+        MessagePlugin.error('登录已过期，请重新登录')
+        const userStore = useUserStore()
+        userStore.logout()
+        router.replace('/signin')
         return Promise.reject(new Error('Refresh token failed'))
       }
 
@@ -121,17 +122,19 @@ async function requestCatchEnd(
       } catch (refreshError) {
         // Token 刷新失败，跳转登录
         console.error('Token refresh failed:', refreshError)
-        message.destroy()
-        message.error('登录已过期，请重新登录')
-        navigateTo('/signin', { replace: true })
+        MessagePlugin.closeAll()
+        MessagePlugin.error('登录已过期，请重新登录')
+        const userStore = useUserStore()
+        userStore.logout()
+        router.replace('/signin')
         return Promise.reject(refreshError)
       }
     }
 
     // 其他错误码的处理
     const msg = codeMessage[status]
-    message.destroy()
-    message.error(msg || '操作失败')
+    MessagePlugin.closeAll()
+    MessagePlugin.error(msg || '操作失败')
   }
 
   return Promise.reject(new Error('Request failed'))
