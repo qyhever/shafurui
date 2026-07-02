@@ -11,7 +11,7 @@ import (
 // @title shafurui-backend API
 // @version 1.0
 // @description shafurui-backend HTTP API documentation.
-// @host localhost:6304
+// @host localhost:6305
 // @BasePath /api
 // @securityDefinitions.apikey BearerAuth
 // @in header

@@ -2,7 +2,7 @@ mode: "dev"
 public_base_url: ""
 
 server:
-  port: 6304
+  port: 6305
 
 logger:
   level: "debug"

@@ -29,7 +29,9 @@ func SetupRouter() *gin.Engine {
 
 	// 静态文件服务
 	r.Static("/public", "./public")
+	// /api/swagger/index.html
 	r.GET("/api/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// /api/k4/index.html
 	r.GET("/api/k4/*any", knife4goGin.WrapHandler(knife4goFiles.Handler))
 
 	fmt.Printf("Go Version %v\n", runtime.Version())
