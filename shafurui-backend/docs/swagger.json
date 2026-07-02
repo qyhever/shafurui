@@ -37,7 +37,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.SwaggerErrorResponse"
+                            "$ref": "#/definitions/controller.SwaggerHelloInfoResponse"
                         }
                     }
                 }
@@ -146,71 +146,11 @@
         }
     },
     "definitions": {
-        "controller.MyCode": {
-            "type": "integer",
-            "format": "int64",
-            "enum": [
-                1000,
-                1001,
-                1002,
-                1003,
-                1004,
-                1005,
-                1006,
-                1007,
-                1008,
-                1009,
-                1010
-            ],
-            "x-enum-comments": {
-                "CodeInvalidParam": "请求参数错误",
-                "CodeInvalidPassword": "用户名或密码错误",
-                "CodeInvalidToken": "无效的token",
-                "CodeNeedLogin": "需要登录",
-                "CodePermissionDenied": "权限不足",
-                "CodeResourceExists": "资源已存在",
-                "CodeResourceNotExist": "资源不存在",
-                "CodeServerBusy": "服务繁忙",
-                "CodeSuccess": "成功",
-                "CodeUserExist": "用户已存在",
-                "CodeUserNotExist": "用户不存在"
-            },
-            "x-enum-descriptions": [
-                "成功",
-                "请求参数错误",
-                "用户已存在",
-                "用户不存在",
-                "用户名或密码错误",
-                "服务繁忙",
-                "需要登录",
-                "无效的token",
-                "资源已存在",
-                "资源不存在",
-                "权限不足"
-            ],
-            "x-enum-varnames": [
-                "CodeSuccess",
-                "CodeInvalidParam",
-                "CodeUserExist",
-                "CodeUserNotExist",
-                "CodeInvalidPassword",
-                "CodeServerBusy",
-                "CodeNeedLogin",
-                "CodeInvalidToken",
-                "CodeResourceExists",
-                "CodeResourceNotExist",
-                "CodePermissionDenied"
-            ]
-        },
         "controller.SwaggerAuthLoginResponse": {
             "type": "object",
             "properties": {
                 "code": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/controller.MyCode"
-                        }
-                    ],
+                    "type": "integer",
                     "example": 1000
                 },
                 "data": {
@@ -226,11 +166,7 @@
             "type": "object",
             "properties": {
                 "code": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/controller.MyCode"
-                        }
-                    ],
+                    "type": "integer",
                     "example": 1001
                 },
                 "data": {},
@@ -244,11 +180,7 @@
             "type": "object",
             "properties": {
                 "code": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/controller.MyCode"
-                        }
-                    ],
+                    "type": "integer",
                     "example": 1000
                 },
                 "data": {
