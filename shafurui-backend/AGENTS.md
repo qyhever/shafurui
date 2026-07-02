@@ -37,6 +37,16 @@
 - 服务还会通过 `/public` URL 暴露 `/public` 下的静态文件；编辑 router setup 时不要破坏该路径。
 - `rest/index.http` 是查看或扩展示例 API 请求最快的位置。
 
+## Swagger 文档
+
+- `internal/api/router.go` 已注册 Swagger UI：`/api/swagger/index.html`。
+- `internal/api/router.go` 还注册了 knife4go UI：`/api/k4/index.html`。
+- Swagger 基础信息维护在 `cmd/main.go` 的 swag 注释中，当前 `BasePath` 为 `/api`。
+- Swagger 生成产物在 `docs/`：`docs.go`、`swagger.json`、`swagger.yaml`。
+- 重新生成文档可执行：`go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g ./cmd/main.go -o ./docs`。
+- `scripts/deploy.sh` 会在部署前执行同一条 Swagger 生成命令，并同步 `docs/` 到服务器。
+- 不要删除 `internal/api/router.go` 中的 `_ "shafurui/docs"`，否则 Swagger 规格不会注册到运行时。
+
 ## 工作约定
 
 - 优先在现有分层边界内做小改动，不要绕过 service 直接从 controller 调用 repository。
