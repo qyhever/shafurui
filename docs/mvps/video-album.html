@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>视频相册 MVP</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap");
+
+      :root {
+        --bg: #f6f5f2;
+        --panel: #ffffff;
+        --ink: #101013;
+        --muted: #696966;
+        --line: #d9d6cf;
+        --line-strong: #b9b5aa;
+        --dark: #171719;
+        --dark-2: #26262a;
+        --accent: #c43f2f;
+        --teal: #1f7a78;
+        --gold: #b8862f;
+        --good: #18794e;
+        --shadow: 0 18px 50px rgba(18, 18, 20, 0.12);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(90deg, rgba(16, 16, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
+          linear-gradient(rgba(16, 16, 19, 0.035) 1px, transparent 1px) 0 0 / 44px 44px,
+          var(--bg);
+        font-family: "Fira Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+        min-height: 100vh;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(246, 245, 242, 0.92);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+      }
+
+      .topbar-inner {
+        max-width: 1480px;
+        margin: 0 auto;
+        min-height: 88px;
+        padding: 18px 28px;
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) minmax(380px, 560px) auto;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .brand {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .mark {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius);
+        background:
+          linear-gradient(135deg, transparent 0 42%, rgba(255, 255, 255, 0.28) 43% 56%, transparent 57%),
+          var(--dark);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        flex: 0 0 auto;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: 0;
+        line-height: 1.05;
+      }
+
+      .brand p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .search {
+        position: relative;
+      }
+
+      .search svg {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+
+      .search input {
+        width: 100%;
+        height: 48px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        padding: 0 16px 0 46px;
+        color: var(--ink);
+        outline: none;
+      }
+
+      .search input:focus {
+        border-color: var(--dark);
+        box-shadow: 0 0 0 3px rgba(16, 16, 19, 0.12);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .icon-button,
+      .segmented button {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius);
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        color: var(--dark);
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+
+      .icon-button:hover,
+      .segmented button:hover {
+        transform: translateY(-1px);
+        border-color: var(--dark);
+      }
+
+      .segmented {
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.58);
+        border-radius: 10px;
+      }
+
+      .segmented button.active {
+        background: var(--dark);
+        color: #fff;
+        border-color: var(--dark);
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 24px 28px 44px;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 24px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 112px;
+        align-self: start;
+        display: grid;
+        gap: 14px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .stat,
+      .date-nav,
+      .filter-panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: var(--radius);
+      }
+
+      .stat {
+        padding: 14px;
+        min-height: 82px;
+      }
+
+      .stat b {
+        display: block;
+        font-family: "Fira Code", monospace;
+        font-size: 23px;
+        line-height: 1;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .filter-panel {
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .select-row {
+        display: grid;
+        gap: 6px;
+      }
+
+      .select-row label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .select-row select {
+        width: 100%;
+        height: 38px;
+        border-radius: 7px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 0 10px;
+        outline: none;
+      }
+
+      .date-nav {
+        padding: 8px;
+      }
+
+      .date-link {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 7px;
+        padding: 10px 10px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        text-align: left;
+        color: var(--ink);
+        transition:
+          background 180ms ease,
+          color 180ms ease;
+      }
+
+      .date-link:hover,
+      .date-link.active {
+        background: var(--dark);
+        color: #fff;
+      }
+
+      .date-link strong {
+        font-size: 13px;
+      }
+
+      .date-link span {
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+        opacity: 0.78;
+      }
+
+      .main {
+        min-width: 0;
+      }
+
+      .overview {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--dark);
+        color: #fff;
+        min-height: 172px;
+        padding: 22px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 22px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .overview::after {
+        content: "";
+        position: absolute;
+        inset: auto -8% -40% 34%;
+        height: 170px;
+        background:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 18px),
+          linear-gradient(90deg, transparent, rgba(196, 63, 47, 0.36), transparent);
+        transform: rotate(-6deg);
+      }
+
+      .overview h2 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.05;
+        letter-spacing: 0;
+        max-width: 720px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .overview p {
+        margin: 12px 0 0;
+        color: rgba(255, 255, 255, 0.68);
+        max-width: 660px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .health {
+        min-width: 250px;
+        position: relative;
+        z-index: 1;
+        align-self: stretch;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: var(--radius);
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .health-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 13px;
+      }
+
+      .health-row:last-child {
+        border-bottom: 0;
+      }
+
+      .health-row span {
+        color: rgba(255, 255, 255, 0.64);
+      }
+
+      .health-row b {
+        font-family: "Fira Code", monospace;
+        color: #fff;
+      }
+
+      .group {
+        scroll-margin-top: 116px;
+        margin-top: 24px;
+      }
+
+      .group-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 4px 2px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .group-title {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+
+      .group-title h3 {
+        margin: 0;
+        font-family: "Fira Code", monospace;
+        font-size: 20px;
+      }
+
+      .group-title span,
+      .group-meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        padding-top: 14px;
+      }
+
+      .grid.compact {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .video-card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: var(--radius);
+        overflow: hidden;
+        min-width: 0;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .video-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow);
+        border-color: var(--dark);
+      }
+
+      .thumb-button {
+        width: 100%;
+        border: 0;
+        padding: 0;
+        background: #111;
+        display: block;
+        position: relative;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+      }
+
+      .thumb-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        filter: saturate(0.9) contrast(1.03);
+        transition: transform 240ms ease;
+      }
+
+      .video-card:hover img {
+        transform: scale(1.035);
+      }
+
+      .play {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: rgba(16, 16, 19, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.26);
+      }
+
+      .duration {
+        position: absolute;
+        right: 10px;
+        bottom: 12px;
+        color: #fff;
+        background: rgba(16, 16, 19, 0.82);
+        border-radius: 5px;
+        padding: 5px 7px;
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+      }
+
+      .badge {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        color: #111;
+        background: rgba(255, 255, 255, 0.86);
+        border-radius: 5px;
+        padding: 5px 7px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .card-body {
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .filename {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.25;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .meta code {
+        color: var(--dark);
+        font-family: "Fira Code", monospace;
+        font-size: 11px;
+      }
+
+      .empty {
+        margin-top: 24px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--radius);
+        padding: 42px 18px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--muted);
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+        place-items: center;
+        padding: 28px;
+        background: rgba(10, 10, 12, 0.78);
+      }
+
+      .modal.open {
+        display: grid;
+      }
+
+      .player {
+        width: min(1080px, 100%);
+        background: #0f0f12;
+        color: #fff;
+        border-radius: var(--radius);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+        overflow: hidden;
+      }
+
+      .player-bar {
+        min-height: 58px;
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .player-bar h4 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .player-bar p {
+        margin: 3px 0 0;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 12px;
+      }
+
+      .close {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        display: grid;
+        place-items: center;
+      }
+
+      .video-stage {
+        aspect-ratio: 16 / 9;
+        display: grid;
+        place-items: center;
+        background: #050506;
+      }
+
+      .video-stage video,
+      .fallback-poster {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .fallback-poster {
+        display: grid;
+        place-items: center;
+        color: rgba(255, 255, 255, 0.82);
+        font-family: "Fira Code", monospace;
+        background-size: cover;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 1120px) {
+        .topbar-inner {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar {
+          justify-content: flex-start;
+        }
+
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .date-nav {
+          max-height: 220px;
+          overflow: auto;
+        }
+
+        .grid,
+        .grid.compact {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .topbar-inner,
+        .shell {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .brand h1 {
+          font-size: 21px;
+        }
+
+        .sidebar,
+        .overview {
+          grid-template-columns: 1fr;
+        }
+
+        .health {
+          min-width: 0;
+        }
+
+        .grid,
+        .grid.compact {
+          grid-template-columns: 1fr;
+        }
+
+        .group-head {
+          align-items: start;
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div class="brand">
+            <div class="mark" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M6 5.5h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" />
+                <path d="m10.2 9 4.7 3-4.7 3V9Z" fill="currentColor" />
+              </svg>
+            </div>
+            <div>
+              <h1>视频相册</h1>
+              <p>按拍摄时间归档的私有视频库</p>
+            </div>
+          </div>
+
+          <div class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m21 21-4.35-4.35M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <input id="searchInput" type="search" placeholder="搜索文件名、日期或路径" autocomplete="off" />
+          </div>
+
+          <div class="toolbar" aria-label="视图工具栏">
+            <div class="segmented" aria-label="卡片密度">
+              <button id="normalView" class="active" type="button" title="标准密度" aria-label="标准密度">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 5h7v6H4V5Zm9 0h7v6h-7V5ZM4 13h7v6H4v-6Zm9 0h7v6h-7v-6Z" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+              </button>
+              <button id="compactView" type="button" title="紧凑密度" aria-label="紧凑密度">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 4h5v5H4V4Zm5.5 0h5v5h-5V4ZM15 4h5v5h-5V4ZM4 9.5h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5ZM4 15h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5Z" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              </button>
+            </div>
+            <button id="clearButton" class="icon-button" type="button" title="清空筛选" aria-label="清空筛选">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                <path d="M4 7h16M9 11v6m6-6v6M10 4h4l1 3H9l1-3Zm-3 3 1 13h8l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="shell">
+        <aside class="sidebar">
+          <div class="stats">
+            <div class="stat">
+              <b id="totalCount">0</b>
+              <span>视频总数</span>
+            </div>
+            <div class="stat">
+              <b id="totalHours">0h</b>
+              <span>总时长</span>
+            </div>
+          </div>
+
+          <div class="filter-panel">
+            <div class="select-row">
+              <label for="monthFilter">月份</label>
+              <select id="monthFilter"></select>
+            </div>
+            <div class="select-row">
+              <label for="sourceFilter">来源</label>
+              <select id="sourceFilter"></select>
+            </div>
+          </div>
+
+          <nav class="date-nav" id="dateNav" aria-label="日期导航"></nav>
+        </aside>
+
+        <main class="main">
+          <section class="overview">
+            <div>
+              <h2>最近同步的视频已经按日期整理好</h2>
+              <p>封面来自同名图片或视频首帧，列表接口只返回结构化数据，播放仍由 nginx 静态文件负责。</p>
+            </div>
+            <div class="health" aria-label="扫描状态">
+              <div class="health-row"><span>API</span><b>/api/videos</b></div>
+              <div class="health-row"><span>静态前缀</span><b>/videos/</b></div>
+              <div class="health-row"><span>最近扫描</span><b>21:42</b></div>
+              <div class="health-row"><span>封面缺失</span><b id="missingCovers">0</b></div>
+            </div>
+          </section>
+
+          <div id="groups"></div>
+          <div id="emptyState" class="empty" hidden>没有匹配的视频</div>
+        </main>
+      </div>
+    </div>
+
+    <div class="modal" id="playerModal" role="dialog" aria-modal="true" aria-labelledby="playerTitle">
+      <div class="player">
+        <div class="player-bar">
+          <div>
+            <h4 id="playerTitle"></h4>
+            <p id="playerMeta"></p>
+          </div>
+          <button id="closePlayer" class="close" type="button" title="关闭" aria-label="关闭播放器">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="video-stage" id="videoStage"></div>
+      </div>
+    </div>
+
+    <script>
+      const videos = [
+        {
+          filename: "IMG_20260702_184522.mp4",
+          date: "2026-07-02",
+          time: "18:45",
+          duration: 84,
+          resolution: "4K",
+          source: "iPhone",
+          path: "2026/07/IMG_20260702_184522.mp4",
+          hasCover: true,
+          hue: 12,
+        },
+        {
+          filename: "VID_20260702_091038.mov",
+          date: "2026-07-02",
+          time: "09:10",
+          duration: 38,
+          resolution: "1080p",
+          source: "iPhone",
+          path: "2026/07/VID_20260702_091038.mov",
+          hasCover: false,
+          hue: 178,
+        },
+        {
+          filename: "park_walk_20260701.mp4",
+          date: "2026-07-01",
+          time: "20:18",
+          duration: 126,
+          resolution: "4K",
+          source: "Camera",
+          path: "2026/07/park_walk_20260701.mp4",
+          hasCover: true,
+          hue: 142,
+        },
+        {
+          filename: "family_table_20260701.mp4",
+          date: "2026-07-01",
+          time: "12:04",
+          duration: 57,
+          resolution: "1080p",
+          source: "iPhone",
+          path: "2026/07/family_table_20260701.mp4",
+          hasCover: true,
+          hue: 42,
+        },
+        {
+          filename: "rain_window_20260630.m4v",
+          date: "2026-06-30",
+          time: "23:31",
+          duration: 44,
+          resolution: "1080p",
+          source: "Camera",
+          path: "2026/06/rain_window_20260630.m4v",
+          hasCover: true,
+          hue: 213,
+        },
+        {
+          filename: "train_station_20260630.mp4",
+          date: "2026-06-30",
+          time: "08:22",
+          duration: 203,
+          resolution: "4K",
+          source: "Camera",
+          path: "2026/06/train_station_20260630.mp4",
+          hasCover: false,
+          hue: 31,
+        },
+        {
+          filename: "birthday_clip_20260618.mov",
+          date: "2026-06-18",
+          time: "19:45",
+          duration: 72,
+          resolution: "1080p",
+          source: "iPhone",
+          path: "2026/06/birthday_clip_20260618.mov",
+          hasCover: true,
+          hue: 342,
+        },
+        {
+          filename: "kitchen_test_20260618.mp4",
+          date: "2026-06-18",
+          time: "17:02",
+          duration: 29,
+          resolution: "720p",
+          source: "Other",
+          path: "2026/06/kitchen_test_20260618.mp4",
+          hasCover: true,
+          hue: 88,
+        },
+      ];
+
+      const groupsEl = document.querySelector("#groups");
+      const emptyState = document.querySelector("#emptyState");
+      const searchInput = document.querySelector("#searchInput");
+      const monthFilter = document.querySelector("#monthFilter");
+      const sourceFilter = document.querySelector("#sourceFilter");
+      const dateNav = document.querySelector("#dateNav");
+      const totalCount = document.querySelector("#totalCount");
+      const totalHours = document.querySelector("#totalHours");
+      const missingCovers = document.querySelector("#missingCovers");
+      const normalView = document.querySelector("#normalView");
+      const compactView = document.querySelector("#compactView");
+      const clearButton = document.querySelector("#clearButton");
+      const playerModal = document.querySelector("#playerModal");
+      const closePlayer = document.querySelector("#closePlayer");
+      const videoStage = document.querySelector("#videoStage");
+      const playerTitle = document.querySelector("#playerTitle");
+      const playerMeta = document.querySelector("#playerMeta");
+
+      let compact = false;
+
+      function formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const rest = String(seconds % 60).padStart(2, "0");
+        return `${minutes}:${rest}`;
+      }
+
+      function monthOf(date) {
+        return date.slice(0, 7);
+      }
+
+      function dateLabel(date) {
+        const labels = {
+          "2026-07-02": "今天",
+          "2026-07-01": "昨天",
+        };
+        return labels[date] || date;
+      }
+
+      function createPoster(video) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 960;
+        canvas.height = 540;
+        const ctx = canvas.getContext("2d");
+        const hue = video.hue;
+
+        const gradient = ctx.createLinearGradient(0, 0, 960, 540);
+        gradient.addColorStop(0, `hsl(${hue}, 48%, 24%)`);
+        gradient.addColorStop(0.48, `hsl(${(hue + 34) % 360}, 42%, 34%)`);
+        gradient.addColorStop(1, `hsl(${(hue + 174) % 360}, 28%, 16%)`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 960, 540);
+
+        ctx.globalAlpha = 0.28;
+        for (let i = 0; i < 18; i += 1) {
+          ctx.fillStyle = i % 3 === 0 ? "#ffffff" : "#111111";
+          ctx.fillRect(i * 66 - 120, 0, 16, 540);
+        }
+
+        ctx.globalAlpha = 0.92;
+        ctx.fillStyle = "rgba(255,255,255,0.84)";
+        ctx.fillRect(48, 398, 420, 64);
+        ctx.fillStyle = "#111113";
+        ctx.font = "700 32px Fira Sans, sans-serif";
+        ctx.fillText(video.date, 72, 438);
+
+        ctx.fillStyle = "rgba(0,0,0,0.38)";
+        ctx.fillRect(48, 56, 210, 42);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "600 22px Fira Code, monospace";
+        ctx.fillText(video.resolution, 70, 84);
+
+        if (!video.hasCover) {
+          ctx.fillStyle = "rgba(255,255,255,0.72)";
+          ctx.fillRect(716, 56, 188, 42);
+          ctx.fillStyle = "#111113";
+          ctx.font = "700 18px Fira Sans, sans-serif";
+          ctx.fillText("NO COVER", 746, 83);
+        }
+
+        return canvas.toDataURL("image/jpeg", 0.86);
+      }
+
+      videos.forEach((video) => {
+        video.poster = createPoster(video);
+      });
+
+      function setupFilters() {
+        const months = [...new Set(videos.map((video) => monthOf(video.date)))];
+        const sources = [...new Set(videos.map((video) => video.source))];
+
+        monthFilter.innerHTML = `<option value="all">全部月份</option>${months
+          .map((month) => `<option value="${month}">${month}</option>`)
+          .join("")}`;
+        sourceFilter.innerHTML = `<option value="all">全部来源</option>${sources
+          .map((source) => `<option value="${source}">${source}</option>`)
+          .join("")}`;
+      }
+
+      function filteredVideos() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const month = monthFilter.value;
+        const source = sourceFilter.value;
+
+        return videos.filter((video) => {
+          const matchedKeyword =
+            !keyword ||
+            video.filename.toLowerCase().includes(keyword) ||
+            video.path.toLowerCase().includes(keyword) ||
+            video.date.includes(keyword);
+          const matchedMonth = month === "all" || monthOf(video.date) === month;
+          const matchedSource = source === "all" || video.source === source;
+          return matchedKeyword && matchedMonth && matchedSource;
+        });
+      }
+
+      function groupByDate(items) {
+        return items.reduce((map, video) => {
+          if (!map.has(video.date)) {
+            map.set(video.date, []);
+          }
+          map.get(video.date).push(video);
+          return map;
+        }, new Map());
+      }
+
+      function renderNav(groups) {
+        dateNav.innerHTML = [...groups.entries()]
+          .map(
+            ([date, items], index) => `
+              <button class="date-link ${index === 0 ? "active" : ""}" type="button" data-target="group-${date}">
+                <strong>${dateLabel(date)}</strong>
+                <span>${items.length}</span>
+              </button>
+            `,
+          )
+          .join("");
+
+        dateNav.querySelectorAll(".date-link").forEach((button) => {
+          button.addEventListener("click", () => {
+            document.querySelector(`#${button.dataset.target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            dateNav.querySelectorAll(".date-link").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+          });
+        });
+      }
+
+      function cardTemplate(video) {
+        return `
+          <article class="video-card">
+            <button class="thumb-button" type="button" data-path="${video.path}" aria-label="播放 ${video.filename}">
+              <img src="${video.poster}" loading="lazy" alt="${video.filename} 封面" />
+              <span class="badge">${video.hasCover ? "COVER" : "FIRST FRAME"}</span>
+              <span class="play" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 5v14l11-7L8 5Z" fill="currentColor" />
+                </svg>
+              </span>
+              <span class="duration">${formatDuration(video.duration)}</span>
+            </button>
+            <div class="card-body">
+              <p class="filename" title="${video.filename}">${video.filename}</p>
+              <div class="meta">
+                <span>${video.date} ${video.time}</span>
+                <code>${video.resolution}</code>
+              </div>
+              <div class="meta">
+                <span>${video.source}</span>
+                <code>${video.path}</code>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function render() {
+        const items = filteredVideos();
+        const groups = groupByDate(items);
+        const seconds = items.reduce((sum, video) => sum + video.duration, 0);
+
+        totalCount.textContent = String(items.length);
+        totalHours.textContent = `${(seconds / 3600).toFixed(1)}h`;
+        missingCovers.textContent = String(items.filter((video) => !video.hasCover).length);
+        emptyState.hidden = items.length > 0;
+
+        groupsEl.innerHTML = [...groups.entries()]
+          .map(([date, groupItems]) => {
+            const groupSeconds = groupItems.reduce((sum, video) => sum + video.duration, 0);
+            return `
+              <section class="group" id="group-${date}">
+                <div class="group-head">
+                  <div class="group-title">
+                    <h3>${date}</h3>
+                    <span>${dateLabel(date)}</span>
+                  </div>
+                  <div class="group-meta">${groupItems.length} 个视频 / ${(groupSeconds / 60).toFixed(1)} 分钟</div>
+                </div>
+                <div class="grid ${compact ? "compact" : ""}">
+                  ${groupItems.map(cardTemplate).join("")}
+                </div>
+              </section>
+            `;
+          })
+          .join("");
+
+        renderNav(groups);
+
+        groupsEl.querySelectorAll(".thumb-button").forEach((button) => {
+          button.addEventListener("click", () => {
+            const video = videos.find((item) => item.path === button.dataset.path);
+            openPlayer(video);
+          });
+        });
+      }
+
+      function openPlayer(video) {
+        if (!video) return;
+        playerTitle.textContent = video.filename;
+        playerMeta.textContent = `${video.date} ${video.time} / ${video.resolution} /videos/${video.path}`;
+        videoStage.innerHTML = `
+          <div class="fallback-poster" style="background-image:url('${video.poster}')">
+            <span>等待接入真实视频文件</span>
+          </div>
+        `;
+        playerModal.classList.add("open");
+      }
+
+      function closeModal() {
+        playerModal.classList.remove("open");
+        videoStage.innerHTML = "";
+      }
+
+      searchInput.addEventListener("input", render);
+      monthFilter.addEventListener("change", render);
+      sourceFilter.addEventListener("change", render);
+      clearButton.addEventListener("click", () => {
+        searchInput.value = "";
+        monthFilter.value = "all";
+        sourceFilter.value = "all";
+        render();
+      });
+      normalView.addEventListener("click", () => {
+        compact = false;
+        normalView.classList.add("active");
+        compactView.classList.remove("active");
+        render();
+      });
+      compactView.addEventListener("click", () => {
+        compact = true;
+        compactView.classList.add("active");
+        normalView.classList.remove("active");
+        render();
+      });
+      closePlayer.addEventListener("click", closeModal);
+      playerModal.addEventListener("click", (event) => {
+        if (event.target === playerModal) {
+          closeModal();
+        }
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeModal();
+        }
+      });
+
+      setupFilters();
+      render();
+    </script>
+  </body>
+</html>
