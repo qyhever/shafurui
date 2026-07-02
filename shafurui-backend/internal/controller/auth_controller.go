@@ -1,0 +1,82 @@
+package controller
+
+import (
+	"errors"
+
+	"shafurui/internal/model"
+	"shafurui/internal/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+type AuthController struct {
+	authService *service.AuthService
+}
+
+func NewAuthController(
+	authService *service.AuthService,
+) *AuthController {
+	return &AuthController{
+		authService: authService,
+	}
+}
+
+// Login godoc
+// @Summary 管理员登录
+// @Description 使用管理员用户名和密码换取 accessToken 与 refreshToken。
+// @Tags -auth
+// @Accept json
+// @Produce json
+// @Param request body model.AuthLoginRequest true "登录参数"
+// @Success 200 {object} SwaggerLoginResponse
+// @Failure 200 {object} SwaggerErrorResponse
+// @Router /api/auth/login [post]
+func (ac *AuthController) Login(c *gin.Context) {
+	var param model.AuthLoginRequest
+	if err := c.ShouldBindJSON(&param); err != nil {
+		ResponseFailed(c, CodeInvalidParam)
+		return
+	}
+
+	result, err := ac.authService.AuthLogin(c.Request.Context(), param)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			ResponseFailed(c, CodeInvalidPassword)
+			return
+		}
+		ResponseFailed(c, CodeServerBusy)
+		return
+	}
+
+	ResponseSuccess(c, result)
+}
+
+// RefreshToken godoc
+// @Summary 刷新管理员 Token
+// @Description 使用 refreshToken 换取新的 accessToken 与 refreshToken。
+// @Tags -auth
+// @Accept json
+// @Produce json
+// @Param request body model.AuthRefreshTokenRequest true "刷新参数"
+// @Success 200 {object} SwaggerLoginResponse
+// @Failure 200 {object} SwaggerErrorResponse
+// @Router /api/auth/refresh [post]
+func (ac *AuthController) RefreshToken(c *gin.Context) {
+	var param model.AuthRefreshTokenRequest
+	if err := c.ShouldBindJSON(&param); err != nil {
+		ResponseFailed(c, CodeInvalidParam)
+		return
+	}
+
+	result, err := ac.authService.AuthRefreshToken(c.Request.Context(), param)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidRefreshToken) {
+			ResponseFailed(c, CodeInvalidToken)
+			return
+		}
+		ResponseFailed(c, CodeServerBusy)
+		return
+	}
+
+	ResponseSuccess(c, result)
+}
