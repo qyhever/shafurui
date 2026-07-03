@@ -51,7 +51,7 @@ while IFS= read -r -d '' video; do
       sed -n '1p'
   )"
 
-  if [ -z "$shot_date" ]; then
+  if ! [[ "$shot_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
     shot_date="$(mtime_date "$video")"
   fi
 

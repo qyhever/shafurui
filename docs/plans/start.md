@@ -6,13 +6,14 @@
 
 1. 手机导出视频到本地目录
 2. 使用脚本按拍摄日期整理到中间目录
-3. 使用脚本为缺失封面的视频生成同名 `jpg`
-4. 使用 `rsync` 上传整理后的目录到远程服务器
-5. 视频文件和封面图落到 nginx 的 `html` 或独立静态目录
-6. 提供一个 Go API 扫描该目录并返回视频列表
-7. 前端页面调用 API 渲染相册
+3. 使用脚本把 `mov` / `m4v` 无损重新封装为 Web 更友好的 `mp4`
+4. 使用脚本为缺失封面的视频生成同名 `jpg`
+5. 使用 `rsync` 上传整理后的目录到远程服务器
+6. 视频文件和封面图落到 nginx 的 `html` 或独立静态目录
+7. 提供一个 Go API 扫描该目录并返回视频列表
+8. 前端页面调用 API 渲染相册
 
-这个方案整体可行，适合私有自用场景。推荐采用“shell 脚本负责离线预处理，nginx 提供静态视频和封面文件，Go 只负责目录扫描和列表接口，前端负责分组展示”的分层方式。
+这个方案整体可行，适合私有自用场景。推荐采用“shell 脚本负责离线预处理，nginx 提供静态视频和封面文件，Go 只负责目录扫描和列表接口，前端负责分组展示”的分层方式。手机导出的 `mov` 建议保留原文件，同时在中间目录生成 Web 播放用的 `mp4`，不要直接覆盖原始素材。
 
 ## 可行性分析
 
@@ -66,7 +67,7 @@
       a.mp4
       a.jpg
     2026-07-01/
-      b.mov
+      b.mp4
       b.jpg
 ```
 
@@ -138,6 +139,53 @@ cd shafurui-backend
 
 建议不要直接在手机导出的原始目录里移动文件。保留原始目录，生成一个中间目录，更容易回滚和重新处理。
 
+## MOV 到 MP4 预处理策略
+
+手机导出的视频经常是 `mov`，但 PC Web 的 `<video>` 对 `mp4` 的兼容性通常更稳定，因此建议在上传前生成 `mp4` 播放版本。这里的优先方案不是转码，而是用 `ffmpeg` 重新封装：
+
+```bash
+ffmpeg -i input.MOV \
+  -map 0:v:0 \
+  -map 0:a:0? \
+  -c copy \
+  -movflags +faststart \
+  -map_metadata 0 \
+  output.mp4
+```
+
+这个命令的关键点：
+
+- `-c copy` 表示只换容器，不重新编码，视频和音频码流不变，因此不会降低画质。
+- `-movflags +faststart` 会把 MP4 索引提前，更适合 Web 边下边播。
+- `-map 0:v:0` 和 `-map 0:a:0?` 只保留主视频流和可选主音频流，跳过 iPhone 常见的 `mebx` 数据流。
+- `-map_metadata 0` 会尽量保留原视频元数据，便于后续用 `ffprobe` 读取创建时间。
+
+以 `IMG_4466.MOV` 为例，它的视频编码是 `H.264 High`，像素格式是 `yuv420p`，音频是 `AAC LC`，本身已经是浏览器友好的编码组合。准确处理方式是 `MOV -> MP4` 无损重新封装，不需要转成 `libx264`。只有遇到 HEVC、异常音频编码或浏览器无法播放的文件时，才考虑额外转码为 `H.264 + AAC`。
+
+### 预处理脚本
+
+脚本保存到：
+
+```text
+shafurui-backend/scripts/remux-mov-to-mp4.sh
+```
+
+使用示例：
+
+```bash
+cd shafurui-backend
+./scripts/remux-mov-to-mp4.sh ~/video-export-grouped
+```
+
+命令说明：
+
+- `~/video-export-grouped` 是已经按日期整理后的目录。
+- 脚本会递归查找 `mov`、`m4v` 文件。
+- 输出文件和源文件同目录、同名，但扩展名为 `mp4`。
+- 如果目标 `mp4` 已存在，会直接跳过。
+- 脚本只做 `-c copy` 无损重新封装，不降低视频质量。
+- 成功生成 `mp4` 后会删除中间目录里的 `mov` / `m4v` 副本，避免 API 扫描和页面展示出现重复视频；原始素材仍保留在手机导出的原始目录中。
+
 ## 封面图预处理策略
 
 封面图也建议在上传前用脚本生成，而不是由 Go API 触发。这样可以避免线上接口执行大量 `ffmpeg` 任务，也能让静态目录在同步完成后立即具备完整的播放和封面资源。
@@ -146,7 +194,7 @@ cd shafurui-backend
 
 ```text
 2026-07-01/a.mp4  ->  2026-07-01/a.jpg
-2026-07-01/b.mov  ->  2026-07-01/b.jpg
+2026-07-01/b.mp4  ->  2026-07-01/b.jpg
 ```
 
 ### 预处理脚本
@@ -176,6 +224,7 @@ cd shafurui-backend
 ```bash
 cd shafurui-backend
 ./scripts/group-videos-by-date.sh ~/video-export-flat ~/video-export-grouped
+./scripts/remux-mov-to-mp4.sh ~/video-export-grouped
 ./scripts/generate-video-covers.sh ~/video-export-grouped
 rsync -av --progress ~/video-export-grouped/ user@server:/data/www/site/videos/
 ```
