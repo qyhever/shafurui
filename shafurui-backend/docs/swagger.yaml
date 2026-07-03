@@ -11,16 +11,6 @@ definitions:
         example: success
         type: string
     type: object
-  controller.SwaggerErrorResponse:
-    properties:
-      code:
-        example: 1001
-        type: integer
-      data: {}
-      message:
-        example: 请求参数错误
-        type: string
-    type: object
   controller.SwaggerHelloInfoResponse:
     properties:
       code:
@@ -28,6 +18,17 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/model.GetHelloInfoResponse'
+      message:
+        example: success
+        type: string
+    type: object
+  controller.SwaggerUserInfoResponse:
+    properties:
+      code:
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/model.UserInfoResponse'
       message:
         example: success
         type: string
@@ -68,6 +69,15 @@ definitions:
       name:
         type: string
     type: object
+  model.UserInfoResponse:
+    properties:
+      nickname:
+        type: string
+      userID:
+        type: integer
+      username:
+        type: string
+    type: object
 host: localhost:6305
 info:
   contact: {}
@@ -75,6 +85,23 @@ info:
   title: shafurui-backend API
   version: "1.0"
 paths:
+  /user/userInfo:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的基础信息，不返回密码。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerUserInfoResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户信息
+      tags:
+      - user
   /app/getHelloInfo:
     post:
       consumes:

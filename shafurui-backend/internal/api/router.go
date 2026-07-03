@@ -43,23 +43,26 @@ func SetupRouter() *gin.Engine {
 	appRepo := persistence.NewAppRepository()
 	appService := service.NewAppService(appRepo)
 	appController := controller.NewAppController(appService)
+	userRepo := persistence.NewUserRepository()
+	userService := service.NewUserService(userRepo)
+	userController := controller.NewUserController(userService)
 
 	v1 := r.Group("/api")
 
 	v1.GET("/meta", metaController.GetMeta)
 
 	appGroup := v1.Group("/app")
-	authGroup := v1.Group("/auth")
-	adminGroup := v1.Group("/admin")
-
 	{
 		appGroup.POST("/getHelloInfo", appController.GetHelloInfo)
 	}
 
+	authGroup := v1.Group("/auth")
 	authGroup.POST("/login", authController.Login)
 	authGroup.POST("/refresh", authController.RefreshToken)
-	adminProtectedGroup := adminGroup.Group("")
-	adminProtectedGroup.Use(middleware.JWTAuthMiddleware())
+
+	userGroup := v1.Group("/user")
+	userGroup.Use(middleware.JWTAuthMiddleware())
+	userGroup.GET("/userInfo", userController.GetCurrentUserInfo)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

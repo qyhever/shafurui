@@ -15,6 +15,34 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/user/userInfo": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户的基础信息，不返回密码。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "获取当前用户信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerUserInfoResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/app/getHelloInfo": {
             "post": {
                 "description": "根据传入 name 返回问候信息。",
@@ -168,20 +196,6 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.SwaggerErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 1001
-                },
-                "data": {},
-                "message": {
-                    "type": "string",
-                    "example": "请求参数错误"
-                }
-            }
-        },
         "controller.SwaggerHelloInfoResponse": {
             "type": "object",
             "properties": {
@@ -191,6 +205,22 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/model.GetHelloInfoResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "controller.SwaggerUserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/model.UserInfoResponse"
                 },
                 "message": {
                     "type": "string",
@@ -250,6 +280,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "integer"
+                },
+                "username": {
                     "type": "string"
                 }
             }

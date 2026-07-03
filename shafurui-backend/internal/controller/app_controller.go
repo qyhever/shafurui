@@ -26,7 +26,6 @@ func NewAppController(appService *service.AppService) *AppController {
 // @Produce json
 // @Param request body model.GetHelloInfoRequest true "请求参数"
 // @Success 200 {object} SwaggerHelloInfoResponse
-// @Failure 200 {object} SwaggerErrorResponse
 // @Router /app/getHelloInfo [post]
 func (app *AppController) GetHelloInfo(c *gin.Context) {
 	var req model.GetHelloInfoRequest
