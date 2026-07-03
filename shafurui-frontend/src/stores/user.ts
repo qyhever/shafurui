@@ -1,11 +1,9 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { request } from '@/utils/fetch'
-
-interface AuthTokenResponse {
-  accessToken: string
-  refreshToken: string
-}
+import {
+  refreshAccessToken as refreshAccessTokenApi,
+  type AuthTokenResponse,
+} from '@/api/global'
 
 const ACCESS_TOKEN_KEY = 'accessToken'
 const REFRESH_TOKEN_KEY = 'refreshToken'
@@ -26,13 +24,7 @@ export const useUserStore = defineStore('user', () => {
       return Promise.reject(new Error('Refresh token missing'))
     }
 
-    const response = await request<AuthTokenResponse>({
-      method: 'POST',
-      url: '/auth/refresh',
-      data: {
-        refreshToken: refreshToken.value,
-      },
-    })
+    const response = await refreshAccessTokenApi(refreshToken.value)
 
     setTokens(response)
     return response.accessToken
