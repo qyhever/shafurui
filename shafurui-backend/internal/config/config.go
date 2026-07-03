@@ -12,13 +12,12 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
-	Mode          string         `mapstructure:"mode"`
-	PublicBaseURL string         `mapstructure:"public_base_url"`
-	Server        ServerConfig   `mapstructure:"server"`
-	Logger        LoggerConfig   `mapstructure:"logger"`
-	Database      DatabaseConfig `mapstructure:"database"`
-	JWT           JWTConfig      `mapstructure:"jwt"`
-	Auth          AuthConfig     `mapstructure:"auth"`
+	Mode     string         `mapstructure:"mode"`
+	Server   ServerConfig   `mapstructure:"server"`
+	Logger   LoggerConfig   `mapstructure:"logger"`
+	Database DatabaseConfig `mapstructure:"database"`
+	JWT      JWTConfig      `mapstructure:"jwt"`
+	Auth     AuthConfig     `mapstructure:"auth"`
 }
 
 // ServerConfig 服务器配置
@@ -146,7 +145,6 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.AutomaticEnv()
 
 	loader.BindEnv("mode", "SHAFURUI_MODE")
-	loader.BindEnv("public_base_url", "SHAFURUI_PUBLIC_BASE_URL")
 
 	loader.BindEnv("server.port", "SHAFURUI_SERVER_PORT")
 
