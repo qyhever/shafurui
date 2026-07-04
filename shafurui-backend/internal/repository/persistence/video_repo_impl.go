@@ -13,11 +13,10 @@ import (
 	"strings"
 	"time"
 
+	"shafurui/internal/config"
 	"shafurui/internal/model"
 	"shafurui/internal/repository"
 )
-
-const videoURLPrefix = "/videos"
 
 var (
 	videoExtensions = map[string]struct{}{
@@ -88,12 +87,13 @@ func buildVideoItem(root, path string) (model.VideoItem, error) {
 	groupDate := shotAt.Format(time.DateOnly)
 
 	coverRel := replaceExt(rel, ".jpg")
+	videoBaseURL := strings.TrimRight(config.GetVideoBaseURL(), "/")
 	return model.VideoItem{
 		ID:           rel,
 		Filename:     filepath.Base(path),
 		RelativePath: rel,
-		URL:          videoURLPrefix + "/" + rel,
-		CoverURL:     videoURLPrefix + "/" + coverRel,
+		URL:          joinVideoURL(videoBaseURL, rel),
+		CoverURL:     joinVideoURL(videoBaseURL, coverRel),
 		ShotAt:       shotAt,
 		GroupDate:    groupDate,
 		DurationSec:  meta.DurationSec,
@@ -102,6 +102,13 @@ func buildVideoItem(root, path string) (model.VideoItem, error) {
 		SizeBytes:    info.Size(),
 		Mtime:        info.ModTime(),
 	}, nil
+}
+
+func joinVideoURL(baseURL, rel string) string {
+	if baseURL == "" {
+		return rel
+	}
+	return baseURL + "/" + strings.TrimLeft(rel, "/")
 }
 
 func groupVideoItems(items []model.VideoItem) []model.VideoGroup {

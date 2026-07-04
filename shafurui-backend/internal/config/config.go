@@ -13,6 +13,7 @@ import (
 // Config 应用配置结构体
 type Config struct {
 	Mode         string         `mapstructure:"mode"`
+	VideoBaseURL string         `mapstructure:"video_base_url"`
 	VideoDirPath string         `mapstructure:"video_dir_path"`
 	Server       ServerConfig   `mapstructure:"server"`
 	Logger       LoggerConfig   `mapstructure:"logger"`
@@ -146,6 +147,7 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.AutomaticEnv()
 
 	loader.BindEnv("mode", "SHAFURUI_MODE")
+	loader.BindEnv("video_base_url", "SHAFURUI_VIDEO_BASE_URL")
 	loader.BindEnv("video_dir_path", "SHAFURUI_VIDEO_DIR_PATH")
 
 	loader.BindEnv("server.port", "SHAFURUI_SERVER_PORT")
@@ -207,6 +209,14 @@ func GetVideoDirPath() string {
 		return ""
 	}
 	return GlobalConfig.VideoDirPath
+}
+
+// GetVideoBaseURL 获取视频访问基础 URL
+func GetVideoBaseURL() string {
+	if GlobalConfig == nil {
+		return ""
+	}
+	return GlobalConfig.VideoBaseURL
 }
 
 // GetServerAddr 获取服务器地址

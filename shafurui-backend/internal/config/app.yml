@@ -1,5 +1,6 @@
 mode: "dev"
 
+video_base_url: "http://localhost:6305/public/video-export-grouped"
 video_dir_path: "./public/video-export-grouped"
 
 server:
