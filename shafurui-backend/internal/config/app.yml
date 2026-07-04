@@ -1,5 +1,7 @@
 mode: "dev"
 
+video_dir_path: "./public/video-export-grouped"
+
 server:
   port: 6305
 

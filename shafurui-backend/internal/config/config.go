@@ -12,12 +12,13 @@ import (
 
 // Config 应用配置结构体
 type Config struct {
-	Mode     string         `mapstructure:"mode"`
-	Server   ServerConfig   `mapstructure:"server"`
-	Logger   LoggerConfig   `mapstructure:"logger"`
-	Database DatabaseConfig `mapstructure:"database"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Auth     AuthConfig     `mapstructure:"auth"`
+	Mode         string         `mapstructure:"mode"`
+	VideoDirPath string         `mapstructure:"video_dir_path"`
+	Server       ServerConfig   `mapstructure:"server"`
+	Logger       LoggerConfig   `mapstructure:"logger"`
+	Database     DatabaseConfig `mapstructure:"database"`
+	JWT          JWTConfig      `mapstructure:"jwt"`
+	Auth         AuthConfig     `mapstructure:"auth"`
 }
 
 // ServerConfig 服务器配置
@@ -145,6 +146,7 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.AutomaticEnv()
 
 	loader.BindEnv("mode", "SHAFURUI_MODE")
+	loader.BindEnv("video_dir_path", "SHAFURUI_VIDEO_DIR_PATH")
 
 	loader.BindEnv("server.port", "SHAFURUI_SERVER_PORT")
 
@@ -197,6 +199,14 @@ func mergeOptionalConfig(loader *viper.Viper, name string) (bool, error) {
 // GetConfig 获取全局配置
 func GetConfig() *Config {
 	return GlobalConfig
+}
+
+// GetVideoDirPath 获取视频目录路径
+func GetVideoDirPath() string {
+	if GlobalConfig == nil {
+		return ""
+	}
+	return GlobalConfig.VideoDirPath
 }
 
 // GetServerAddr 获取服务器地址

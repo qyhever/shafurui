@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strings"
 
 	_ "shafurui/docs"
 	"shafurui/internal/config"
@@ -46,6 +47,9 @@ func SetupRouter() *gin.Engine {
 	userRepo := persistence.NewUserRepository()
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
+	videoRepo := persistence.NewVideoRepository()
+	videoService := service.NewVideoService(videoRepo)
+	videoController := controller.NewVideoController(videoService)
 
 	v1 := r.Group("/api")
 
@@ -63,6 +67,14 @@ func SetupRouter() *gin.Engine {
 	userGroup := v1.Group("/user")
 	userGroup.Use(middleware.JWTAuthMiddleware())
 	userGroup.GET("/userInfo", userController.GetCurrentUserInfo)
+
+	videoGroup := v1.Group("/video")
+	videoGroup.Use(middleware.JWTAuthMiddleware())
+	videoGroup.GET("", videoController.ListVideos)
+
+	if videoDirPath := config.GetVideoDirPath(); strings.TrimSpace(videoDirPath) != "" {
+		r.Static("/videos", videoDirPath)
+	}
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
