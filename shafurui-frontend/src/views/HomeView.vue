@@ -1138,8 +1138,9 @@ button {
   z-index: 50;
   display: none;
   place-items: center;
-  padding: 28px;
+  padding: 24px;
   background: rgba(10, 10, 12, 0.78);
+  overflow: auto;
 }
 
 .modal.open {
@@ -1148,11 +1149,14 @@ button {
 
 .player {
   width: min(1080px, 100%);
+  max-height: calc(100vh - 48px);
   background: #0f0f12;
   color: #fff;
   border-radius: var(--radius);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .player-bar {
@@ -1193,16 +1197,23 @@ button {
 }
 
 .video-stage {
-  aspect-ratio: 16 / 9;
+  min-height: 0;
+  height: min(62.5vw, calc(100vh - 130px));
+  max-height: calc(100vh - 130px);
   display: grid;
   place-items: center;
   background: #050506;
+  overflow: hidden;
 }
 
 .video-stage video {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(62.5vw, calc(100vh - 130px));
   object-fit: contain;
+  background: #050506;
 }
 
 @media (max-width: 1120px) {
@@ -1265,7 +1276,21 @@ button {
   }
 
   .modal {
-    padding: 14px;
+    padding: 10px;
+    align-items: start;
+  }
+
+  .player {
+    max-height: calc(100vh - 20px);
+  }
+
+  .video-stage {
+    height: calc(100vh - 106px);
+    max-height: calc(100vh - 106px);
+  }
+
+  .video-stage video {
+    max-height: calc(100vh - 106px);
   }
 }
 
