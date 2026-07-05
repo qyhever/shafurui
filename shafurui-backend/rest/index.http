@@ -1,7 +1,7 @@
 @hostname = localhost
 @port = 6305
 @host = {{hostname}}:{{port}}
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgzMTgxODIyLCJpc3MiOiJqZXZlIn0.BJtc9w-hVphXIUCjOEhP4cT648nWpGavDTzsSvtaPIU
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgzMjczMDM0LCJpc3MiOiJqZXZlIn0.xdXegjUPHbob0HZT5cHlowVs_T6nRoPFJpg3ZC47HQs
 
 ### AuthLogin
 post http://{{host}}/api/auth/login HTTP/1.1
@@ -22,6 +22,11 @@ Content-Type: application/json
 
 ### Videos
 get http://{{host}}/api/video HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### UserInfo
+get http://{{host}}/api/user/info HTTP/1.1
 Authorization: Bearer {{token}}
 Content-Type: application/json
 

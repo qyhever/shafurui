@@ -150,7 +150,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/userInfo": {
+        "/user/info": {
             "get": {
                 "security": [
                     {
@@ -398,7 +398,7 @@ const docTemplate = `{
                 "nickname": {
                     "type": "string"
                 },
-                "userID": {
+                "userId": {
                     "type": "integer"
                 },
                 "username": {

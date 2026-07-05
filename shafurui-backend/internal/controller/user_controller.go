@@ -25,7 +25,7 @@ func NewUserController(userService *service.UserService) *UserController {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} SwaggerUserInfoResponse
-// @Router /user/userInfo [get]
+// @Router /user/info [get]
 func (uc *UserController) GetCurrentUserInfo(c *gin.Context) {
 	result, err := uc.userService.GetCurrentUserInfo()
 	if err != nil {

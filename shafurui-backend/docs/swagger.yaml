@@ -132,7 +132,7 @@ definitions:
     properties:
       nickname:
         type: string
-      userID:
+      userId:
         type: integer
       username:
         type: string
@@ -234,7 +234,7 @@ paths:
       summary: 获取部署元信息
       tags:
       - meta
-  /user/userInfo:
+  /user/info:
     get:
       consumes:
       - application/json

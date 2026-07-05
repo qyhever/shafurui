@@ -66,7 +66,7 @@ func SetupRouter() *gin.Engine {
 
 	userGroup := v1.Group("/user")
 	userGroup.Use(middleware.JWTAuthMiddleware())
-	userGroup.GET("/userInfo", userController.GetCurrentUserInfo)
+	userGroup.GET("/info", userController.GetCurrentUserInfo)
 
 	videoGroup := v1.Group("/video")
 	videoGroup.Use(middleware.JWTAuthMiddleware())
