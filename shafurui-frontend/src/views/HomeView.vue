@@ -102,6 +102,9 @@
               </svg>
             </button>
           </t-tooltip>
+          <div class="user-chip" :title="userStore.displayName" aria-label="当前用户">
+            <span>{{ userStore.displayName }}</span>
+          </div>
           <t-tooltip content="退出登录" placement="bottom">
             <div
               class="icon-button"
@@ -437,6 +440,7 @@ const missingCovers = computed(
 );
 
 onMounted(async () => {
+  void loadUserInfo();
   await loadVideos();
   window.addEventListener("keydown", handleKeydown);
 });
@@ -465,6 +469,14 @@ async function loadVideos() {
       hour12: false,
     }).format(new Date());
     loading.value = false;
+  }
+}
+
+async function loadUserInfo() {
+  try {
+    await userStore.fetchUserInfo();
+  } catch (error) {
+    console.warn("Failed to load user info.", error);
   }
 }
 
@@ -747,6 +759,7 @@ button {
   gap: 8px;
   justify-content: flex-end;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .icon-button,
@@ -765,6 +778,28 @@ button {
     border-color 180ms ease,
     background 180ms ease;
   cursor: pointer;
+}
+
+.user-chip {
+  max-width: 180px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--dark);
+  padding: 0 13px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.user-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .icon-button:hover,

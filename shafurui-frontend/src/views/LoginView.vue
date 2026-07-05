@@ -180,6 +180,9 @@ async function submit() {
       password: password.value,
     });
     userStore.setTokens(tokens);
+    void userStore.fetchUserInfo(true).catch((error) => {
+      console.warn("Failed to load user info after login.", error);
+    });
     if (remember.value) {
       localStorage.setItem("albumSession", "remote");
     } else {
