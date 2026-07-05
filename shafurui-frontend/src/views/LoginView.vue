@@ -114,7 +114,7 @@
           </div>
 
           <button class="primary" type="submit" :disabled="submitting">
-            <span>{{ submitting ? "正在验证" : "进入相册" }}</span>
+            <span>{{ submitting ? "正在验证" : "登录" }}</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M5 12h14m-6-6 6 6-6 6"
@@ -126,13 +126,8 @@
             </svg>
           </button>
 
-          <div class="notice" :class="noticeType">{{ notice }}</div>
+          <div v-if="notice" class="notice" :class="noticeType">{{ notice }}</div>
         </form>
-
-        <div class="card-foot">
-          <span>API endpoint <code>/api/login</code></span>
-          <RouterLink class="mini-link" to="/">查看相册</RouterLink>
-        </div>
       </div>
     </section>
   </main>
@@ -140,50 +135,66 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { RouterLink, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
+import { login } from "@/api/global";
+import { useUserStore } from "@/stores/user";
 
 defineOptions({
   name: "LoginView",
 });
 
 const router = useRouter();
-const account = ref("admin");
-const password = ref("album2026");
+const userStore = useUserStore();
+const account = ref("");
+const password = ref("");
 const remember = ref(true);
 const showPassword = ref(false);
 const submitting = ref(false);
-const notice = ref("原型账号：admin / album2026");
+const notice = ref("");
 const noticeType = ref("");
 
 function reset() {
   account.value = "";
   password.value = "";
   noticeType.value = "";
-  notice.value = "原型账号：admin / album2026";
+  notice.value = "";
 }
 
-function submit() {
+async function submit() {
+  if (submitting.value) return;
+
+  const username = account.value.trim();
+  if (!username || !password.value) {
+    noticeType.value = "error";
+    notice.value = "请输入账号和密码";
+    return;
+  }
+
   submitting.value = true;
   noticeType.value = "";
   notice.value = "正在验证...";
 
-  window.setTimeout(() => {
-    const ok = account.value.trim() === "admin" && password.value === "album2026";
-    submitting.value = false;
-
-    if (!ok) {
-      noticeType.value = "error";
-      notice.value = "账号或密码不正确";
-      return;
-    }
-
+  try {
+    const tokens = await login({
+      username,
+      password: password.value,
+    });
+    userStore.setTokens(tokens);
     if (remember.value) {
-      localStorage.setItem("albumSession", "local");
+      localStorage.setItem("albumSession", "remote");
+    } else {
+      localStorage.removeItem("albumSession");
     }
     noticeType.value = "success";
     notice.value = "验证通过，正在进入相册";
-    window.setTimeout(() => router.push("/"), 320);
-  }, 420);
+    await router.push("/");
+  } catch (error) {
+    console.warn("Failed to login.", error);
+    noticeType.value = "error";
+    notice.value = "账号或密码不正确";
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 
@@ -562,23 +573,6 @@ button {
   color: var(--good);
   background: rgba(24, 121, 78, 0.09);
   border-color: rgba(24, 121, 78, 0.26);
-}
-
-.card-foot {
-  padding: 14px 24px 18px;
-  border-top: 1px solid var(--line);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 14px;
-  align-items: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.card-foot code {
-  color: var(--dark);
-  font-family: "Fira Code", monospace;
-  font-size: 12px;
 }
 
 .mini-link {

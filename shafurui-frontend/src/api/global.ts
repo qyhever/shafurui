@@ -1,8 +1,8 @@
-import { post } from '@/utils/fetch'
+import { post } from '@/utils/request'
 
 export interface LoginRequest {
-  accessToken: string
-  refreshToken: string
+  username: string
+  password: string
 }
 
 export interface AuthTokenResponse {
