@@ -38,89 +38,89 @@
 
         <div class="toolbar" aria-label="视图工具栏">
           <div class="segmented" aria-label="展示模式">
-            <button
-              :class="{ active: viewMode === 'standard' }"
-              type="button"
-              title="标准模式"
-              aria-label="标准模式"
-              @click="viewMode = 'standard'"
-            >
+            <t-tooltip content="标准模式" placement="bottom">
+              <button
+                :class="{ active: viewMode === 'standard' }"
+                type="button"
+                aria-label="标准模式"
+                @click="viewMode = 'standard'"
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 5h7v6H4V5Zm9 0h7v6h-7V5ZM4 13h7v6H4v-6Zm9 0h7v6h-7v-6Z"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </button>
+            </t-tooltip>
+            <t-tooltip content="紧凑模式" placement="bottom">
+              <button
+                :class="{ active: viewMode === 'compact' }"
+                type="button"
+                aria-label="紧凑模式"
+                @click="viewMode = 'compact'"
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 4h5v5H4V4Zm5.5 0h5v5h-5V4ZM15 4h5v5h-5V4ZM4 9.5h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5ZM4 15h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </button>
+            </t-tooltip>
+            <t-tooltip content="列表模式" placement="bottom">
+              <button
+                :class="{ active: viewMode === 'list' }"
+                type="button"
+                aria-label="列表模式"
+                @click="viewMode = 'list'"
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </t-tooltip>
+          </div>
+          <t-tooltip content="清空筛选" placement="bottom">
+            <button class="icon-button" type="button" aria-label="清空筛选" @click="clearFilters">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                 <path
-                  d="M4 5h7v6H4V5Zm9 0h7v6h-7V5ZM4 13h7v6H4v-6Zm9 0h7v6h-7v-6Z"
+                  d="M20 6v5h-5M4 18v-5h5M18.5 10A7 7 0 0 0 6.1 7.4L4 11m16 2-2.1 3.6A7 7 0 0 1 5.5 14"
                   stroke="currentColor"
                   stroke-width="1.8"
-                />
-              </svg>
-            </button>
-            <button
-              :class="{ active: viewMode === 'compact' }"
-              type="button"
-              title="紧凑模式"
-              aria-label="紧凑模式"
-              @click="viewMode = 'compact'"
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M4 4h5v5H4V4Zm5.5 0h5v5h-5V4ZM15 4h5v5h-5V4ZM4 9.5h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5ZM4 15h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5Z"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-              </svg>
-            </button>
-            <button
-              :class="{ active: viewMode === 'list' }"
-              type="button"
-              title="列表模式"
-              aria-label="列表模式"
-              @click="viewMode = 'list'"
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"
-                  stroke="currentColor"
-                  stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 />
               </svg>
             </button>
-          </div>
-          <button
-            class="icon-button"
-            type="button"
-            title="清空筛选"
-            aria-label="清空筛选"
-            @click="clearFilters"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6v5h-5M4 18v-5h5M18.5 10A7 7 0 0 0 6.1 7.4L4 11m16 2-2.1 3.6A7 7 0 0 1 5.5 14"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-          <div
-            class="icon-button"
-            role="button"
-            tabindex="0"
-            title="退出登录"
-            aria-label="退出登录"
-            @click="confirmLogout"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
+          </t-tooltip>
+          <t-tooltip content="退出登录" placement="bottom">
+            <div
+              class="icon-button"
+              role="button"
+              tabindex="0"
+              aria-label="退出登录"
+              @click="confirmLogout"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </t-tooltip>
         </div>
       </div>
     </header>
