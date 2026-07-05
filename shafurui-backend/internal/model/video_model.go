@@ -6,6 +6,11 @@ type VideoListResponse struct {
 	Groups []VideoGroup `json:"groups"`
 }
 
+type VideoRefreshResponse struct {
+	ScannedCount int    `json:"scannedCount"`
+	Duration     string `json:"duration"`
+}
+
 type VideoGroup struct {
 	Date  string      `json:"date"`
 	Items []VideoItem `json:"items"`

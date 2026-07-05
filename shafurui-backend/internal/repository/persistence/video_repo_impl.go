@@ -11,12 +11,15 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"shafurui/internal/config"
 	"shafurui/internal/model"
 	"shafurui/internal/repository"
 )
+
+const videoIndexFilename = "video-index.json"
 
 var (
 	videoExtensions = map[string]struct{}{
@@ -28,13 +31,64 @@ var (
 	pathTimeRegexp = regexp.MustCompile(`(\d{4})[-_/]?(\d{2})[-_/]?(\d{2})(?:[ T_-]?(\d{2})[-_:.]?(\d{2})[-_:.]?(\d{2}))?`)
 )
 
-type VideoRepositoryImpl struct{}
+type VideoRepositoryImpl struct {
+	mu    sync.RWMutex
+	cache model.VideoListResponse
+}
 
 func NewVideoRepository() repository.VideoRepository {
-	return &VideoRepositoryImpl{}
+	repo := &VideoRepositoryImpl{}
+	repo.loadIndex(config.GetVideoDirPath())
+	return repo
 }
 
 func (r *VideoRepositoryImpl) ListVideos(videoDirPath string) (*model.VideoListResponse, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return cloneVideoListResponse(&r.cache), nil
+}
+
+func (r *VideoRepositoryImpl) RefreshVideos(videoDirPath string) (*model.VideoListResponse, error) {
+	result, err := scanVideos(videoDirPath)
+	if err != nil {
+		return nil, err
+	}
+	if err := writeVideoIndex(videoDirPath, result); err != nil {
+		return nil, err
+	}
+
+	r.mu.Lock()
+	r.cache = *cloneVideoListResponse(result)
+	r.mu.Unlock()
+
+	return result, nil
+}
+
+func (r *VideoRepositoryImpl) loadIndex(videoDirPath string) {
+	if strings.TrimSpace(videoDirPath) == "" {
+		r.cache = model.VideoListResponse{Groups: []model.VideoGroup{}}
+		return
+	}
+
+	indexPath := filepath.Join(filepath.Clean(videoDirPath), videoIndexFilename)
+	data, err := os.ReadFile(indexPath)
+	if err != nil {
+		r.cache = model.VideoListResponse{Groups: []model.VideoGroup{}}
+		return
+	}
+
+	var result model.VideoListResponse
+	if err := json.Unmarshal(data, &result); err != nil {
+		r.cache = model.VideoListResponse{Groups: []model.VideoGroup{}}
+		return
+	}
+	if result.Groups == nil {
+		result.Groups = []model.VideoGroup{}
+	}
+	r.cache = *cloneVideoListResponse(&result)
+}
+
+func scanVideos(videoDirPath string) (*model.VideoListResponse, error) {
 	root := filepath.Clean(videoDirPath)
 	rootInfo, err := os.Stat(root)
 	if err != nil {
@@ -68,6 +122,50 @@ func (r *VideoRepositoryImpl) ListVideos(videoDirPath string) (*model.VideoListR
 	})
 
 	return &model.VideoListResponse{Groups: groupVideoItems(items)}, nil
+}
+
+func writeVideoIndex(videoDirPath string, result *model.VideoListResponse) error {
+	root := filepath.Clean(videoDirPath)
+	indexPath := filepath.Join(root, videoIndexFilename)
+	tmpFile, err := os.CreateTemp(root, videoIndexFilename+".*.tmp")
+	if err != nil {
+		return fmt.Errorf("创建视频索引临时文件失败: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	defer func() {
+		_ = os.Remove(tmpPath)
+	}()
+
+	encoder := json.NewEncoder(tmpFile)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(result); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("写入视频索引失败: %w", err)
+	}
+	if err := tmpFile.Close(); err != nil {
+		return fmt.Errorf("关闭视频索引临时文件失败: %w", err)
+	}
+	if err := os.Rename(tmpPath, indexPath); err != nil {
+		return fmt.Errorf("替换视频索引失败: %w", err)
+	}
+	return nil
+}
+
+func cloneVideoListResponse(src *model.VideoListResponse) *model.VideoListResponse {
+	if src == nil {
+		return &model.VideoListResponse{Groups: []model.VideoGroup{}}
+	}
+
+	groups := make([]model.VideoGroup, len(src.Groups))
+	for i, group := range src.Groups {
+		items := make([]model.VideoItem, len(group.Items))
+		copy(items, group.Items)
+		groups[i] = model.VideoGroup{
+			Date:  group.Date,
+			Items: items,
+		}
+	}
+	return &model.VideoListResponse{Groups: groups}
 }
 
 func buildVideoItem(root, path string) (model.VideoItem, error) {

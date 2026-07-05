@@ -1,0 +1,51 @@
+docs/plans/start.md shafurui-backend/internal/api/router.go /api/video 目前是每次请求实时扫目录
+
+把 /api/video 从“请求时扫目录”改成“读缓存索引”，然后让 rsync 完成后主动刷新这个索引。核心思想是：同步文件这件事结束后，立刻触发一次昂贵扫
+  描；页面请求只读扫描结果。
+
+  改成这样：
+
+  rsync 上传完成
+    -> 触发 refresh
+    -> Go 扫 video_dir_path
+    -> 生成内存缓存或 video-index.json
+
+  GET /api/video
+    -> 直接返回缓存 / index
+
+  rsync 后执行远程命令刷新
+
+  本地脚本最后一步从：
+
+  rsync -av --progress ~/video-export-grouped/ user@server:/data/www/site/videos/
+
+  变成：
+
+  rsync -av --progress ~/video-export-grouped/ user@server:/data/www/site/videos/ &&
+  ssh user@server 'curl -fsS -X POST http://127.0.0.1:6305/api/video/refresh'
+
+  命令作用：
+
+  - rsync -av --progress ... 同步本地整理好的视频和封面到服务器。
+  - ssh user@server '...' 在服务器上执行刷新请求。
+  - curl -X POST http://127.0.0.1:6305/api/video/refresh 调用后端刷新接口。
+
+  新增一个接口：
+
+  POST /api/video/refresh
+
+  不走jwt认证，它不返回视频列表，只负责触发扫描并更新缓存。
+
+  缓存用“JSON 索引文件 + 内存缓存”：
+
+  - 刷新时生成 video-index.json。
+  - 服务启动时先加载 video-index.json。
+  - webhook 刷新成功后同时更新文件和内存。
+  - 写文件时先写临时文件，再原子 rename，避免前端读到半截 JSON。
+
+  刷新接口使用同步
+
+  POST /api/video/refresh
+    -> 扫描目录
+    -> 更新缓存
+    -> 返回 scannedCount / duration

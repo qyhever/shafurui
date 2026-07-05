@@ -71,6 +71,7 @@ func SetupRouter() *gin.Engine {
 	videoGroup := v1.Group("/video")
 	videoGroup.Use(middleware.JWTAuthMiddleware())
 	videoGroup.GET("", videoController.ListVideos)
+	v1.POST("/video/refresh", videoController.RefreshVideos)
 
 	if videoDirPath := config.GetVideoDirPath(); strings.TrimSpace(videoDirPath) != "" {
 		r.Static("/videos", videoDirPath)
