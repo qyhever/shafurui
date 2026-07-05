@@ -86,7 +86,14 @@
               />
             </svg>
           </button>
-          <RouterLink class="icon-button" to="/signin" title="登录" aria-label="登录">
+          <div
+            class="icon-button"
+            role="button"
+            tabindex="0"
+            title="退出登录"
+            aria-label="退出登录"
+            @click="confirmLogout"
+          >
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <path
                 d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"
@@ -96,7 +103,7 @@
                 stroke-linejoin="round"
               />
             </svg>
-          </RouterLink>
+          </div>
         </div>
       </div>
     </header>
@@ -287,8 +294,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { RouterLink } from "vue-router";
+import { useRouter } from "vue-router";
+import { DialogPlugin } from "tdesign-vue-next";
 import { getVideoList, type VideoItem } from "@/api/video";
+import { useUserStore } from "@/stores/user";
 
 defineOptions({
   name: "HomeView",
@@ -328,6 +337,8 @@ const sampleVideos: AlbumVideo[] = [
 ];
 
 const videos = ref<AlbumVideo[]>([]);
+const router = useRouter();
+const userStore = useUserStore();
 const keyword = ref("");
 const monthFilter = ref("all");
 const sourceFilter = ref("all");
@@ -534,6 +545,20 @@ function clearFilters() {
   sourceFilter.value = "all";
 }
 
+function confirmLogout() {
+  const confirmDialog = DialogPlugin.confirm({
+    header: "确认退出登录",
+    body: "退出后需要重新登录才能访问视频相册。",
+    confirmBtn: "退出登录",
+    cancelBtn: "取消",
+    onConfirm: async () => {
+      userStore.logout();
+      confirmDialog.destroy();
+      await router.replace("/signin");
+    },
+  });
+}
+
 function openPlayer(video: AlbumVideo) {
   currentVideo.value = video;
 }
@@ -697,6 +722,7 @@ button {
     transform 180ms ease,
     border-color 180ms ease,
     background 180ms ease;
+  cursor: pointer;
 }
 
 .icon-button:hover,
