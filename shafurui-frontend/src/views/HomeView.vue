@@ -220,13 +220,27 @@
                   :aria-label="`播放 ${video.filename}`"
                   @click="openPlayer(video)"
                 >
-                  <img
+                  <t-image
                     v-if="video.coverUrl"
+                    class="thumb-image"
                     :src="video.coverUrl"
-                    loading="lazy"
+                    :lazy="true"
+                    fit="cover"
                     :alt="`${video.filename} 封面`"
                     @error="markCoverMissing(video.id)"
-                  />
+                  >
+                    <template #loading>
+                      <div class="poster-placeholder" :style="{ '--hue': String(video.hue) }">
+                        <span>{{ video.groupDate }}</span>
+                        <b>LOADING</b>
+                      </div>
+                    </template>
+                    <template #error>
+                      <div class="poster-fallback" :style="{ '--hue': String(video.hue) }">
+                        <span>{{ video.groupDate }}</span>
+                      </div>
+                    </template>
+                  </t-image>
                   <div v-else class="poster-fallback" :style="{ '--hue': String(video.hue) }">
                     <span>{{ video.groupDate }}</span>
                   </div>
@@ -1094,7 +1108,7 @@ button {
   width: 100%;
   border: 0;
   padding: 0;
-  background: #111;
+  background: #ece9e1;
   display: block;
   position: relative;
   aspect-ratio: 16 / 9;
@@ -1107,37 +1121,89 @@ button {
   aspect-ratio: auto;
 }
 
-.thumb-button img,
+.thumb-image,
 .poster-fallback {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
   filter: saturate(0.9) contrast(1.03);
   transition: transform 240ms ease;
 }
 
-.video-card:hover img,
+.thumb-image {
+  background: #ece9e1;
+}
+
+.thumb-image :deep(.t-image),
+.thumb-image :deep(img),
+.thumb-image :deep(picture) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.thumb-image :deep(.t-image__loading),
+.thumb-image :deep(.t-image__error) {
+  color: inherit;
+  background: transparent;
+}
+
+.video-card:hover .thumb-image,
 .video-card:hover .poster-fallback {
   transform: scale(1.035);
 }
 
+.poster-placeholder,
 .poster-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: grid;
   place-items: end start;
   padding: 28px;
   color: #111113;
   background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px) 0 0 / 34px 34px,
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px) 0 0 / 34px 34px,
     linear-gradient(
       135deg,
-      hsl(var(--hue), 48%, 24%),
-      hsl(calc(var(--hue) + 34), 42%, 34%) 52%,
-      hsl(calc(var(--hue) + 174), 28%, 16%)
+      hsl(var(--hue), 38%, 74%),
+      hsl(calc(var(--hue) + 34), 34%, 82%) 52%,
+      hsl(calc(var(--hue) + 174), 26%, 68%)
     ),
-    #111;
+    #ece9e1;
 }
 
+.poster-placeholder {
+  align-content: end;
+  gap: 8px;
+}
+
+.poster-placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(17, 17, 19, 0.14);
+  border-radius: 6px;
+}
+
+.poster-placeholder b {
+  position: relative;
+  z-index: 1;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgba(17, 17, 19, 0.72);
+  color: #fff;
+  font-family: "Fira Code", monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.poster-placeholder span,
 .poster-fallback span {
+  position: relative;
+  z-index: 1;
   min-width: 210px;
   padding: 12px 18px;
   background: rgba(255, 255, 255, 0.84);
