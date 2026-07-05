@@ -38,16 +38,16 @@ echo "📍 输出文件: $PROJECT_ROOT/shafurui"
 echo "📅 部署时间: $CURRENT_TIME"
 
 echo "📤 开始上传文件到服务器..."
-rsync -avz --progress --partial ./shafurui qyhever:/opt/apps/shafurui-backend
-rsync -avz --progress --partial ./public qyhever:/opt/apps/shafurui-backend
-rsync -avz --delete --progress --partial ./docs qyhever:/opt/apps/shafurui-backend
-rsync -avz --progress --partial ./internal/config/app.yml qyhever:/opt/apps/shafurui-backend
-rsync -avz --progress --partial ./internal/config/prod.yml qyhever:/opt/apps/shafurui-backend
-rsync -avz --progress --partial ./internal/data qyhever:/opt/apps/shafurui-backend
+rsync -avz --progress --partial ./shafurui kr:/opt/apps/shafurui-backend
+rsync -avz --progress --partial --exclude='video-export-flat' --exclude='video-export-grouped' ./public kr:/opt/apps/shafurui-backend
+rsync -avz --delete --progress --partial ./docs kr:/opt/apps/shafurui-backend
+rsync -avz --progress --partial ./internal/config/app.yml kr:/opt/apps/shafurui-backend
+rsync -avz --progress --partial ./internal/config/prod.yml kr:/opt/apps/shafurui-backend
+rsync -avz --progress --partial ./internal/data kr:/opt/apps/shafurui-backend
 echo "✅ 上传完成！"
 
 echo "🔄 重启远程 shafurui 服务..."
-ssh qyhever 'systemctl restart shafurui'
+ssh kr 'systemctl restart shafurui'
 
 echo "📋 查看远程 shafurui 服务状态..."
-ssh qyhever 'systemctl status shafurui'
+ssh kr 'systemctl status shafurui'

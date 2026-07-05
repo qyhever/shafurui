@@ -58,3 +58,4 @@ internal/config/prod.yml
 commit.sh
 public/video-export-flat
 public/video-export-grouped
+scripts/command.md

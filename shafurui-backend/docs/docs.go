@@ -15,34 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/user/userInfo": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户的基础信息，不返回密码。",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "获取当前用户信息",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controller.SwaggerUserInfoResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/app/getHelloInfo": {
             "post": {
                 "description": "根据传入 name 返回问候信息。",
@@ -177,9 +149,145 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/userInfo": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录管理员的基础信息，不返回密码。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "获取当前管理员信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerUserInfoResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/video": {
+            "get": {
+                "description": "读取视频索引缓存，按日期分组返回视频列表。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "video"
+                ],
+                "summary": "获取视频列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/video/refresh": {
+            "post": {
+                "description": "扫描配置的视频目录，生成视频索引文件并更新内存缓存。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "video"
+                ],
+                "summary": "刷新视频索引",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "controller.MyCode": {
+            "type": "integer",
+            "format": "int64",
+            "enum": [
+                1000,
+                1001,
+                1002,
+                1003,
+                1004,
+                1005,
+                1006,
+                1007,
+                1008,
+                1009,
+                1010
+            ],
+            "x-enum-comments": {
+                "CodeInvalidParam": "请求参数错误",
+                "CodeInvalidPassword": "用户名或密码错误",
+                "CodeInvalidToken": "无效的token",
+                "CodeNeedLogin": "需要登录",
+                "CodePermissionDenied": "权限不足",
+                "CodeResourceExists": "资源已存在",
+                "CodeResourceNotExist": "资源不存在",
+                "CodeServerBusy": "服务繁忙",
+                "CodeSuccess": "成功",
+                "CodeUserExist": "用户已存在",
+                "CodeUserNotExist": "用户不存在"
+            },
+            "x-enum-descriptions": [
+                "成功",
+                "请求参数错误",
+                "用户已存在",
+                "用户不存在",
+                "用户名或密码错误",
+                "服务繁忙",
+                "需要登录",
+                "无效的token",
+                "资源已存在",
+                "资源不存在",
+                "权限不足"
+            ],
+            "x-enum-varnames": [
+                "CodeSuccess",
+                "CodeInvalidParam",
+                "CodeUserExist",
+                "CodeUserNotExist",
+                "CodeInvalidPassword",
+                "CodeServerBusy",
+                "CodeNeedLogin",
+                "CodeInvalidToken",
+                "CodeResourceExists",
+                "CodeResourceNotExist",
+                "CodePermissionDenied"
+            ]
+        },
+        "controller.ResponseData": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/controller.MyCode"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.SwaggerAuthLoginResponse": {
             "type": "object",
             "properties": {
