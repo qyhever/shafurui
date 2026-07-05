@@ -95,7 +95,7 @@
           >
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <path
-                d="M4 7h16M9 11v6m6-6v6M10 4h4l1 3H9l1-3Zm-3 3 1 13h8l1-13"
+                d="M20 6v5h-5M4 18v-5h5M18.5 10A7 7 0 0 0 6.1 7.4L4 11m16 2-2.1 3.6A7 7 0 0 1 5.5 14"
                 stroke="currentColor"
                 stroke-width="1.8"
                 stroke-linecap="round"
