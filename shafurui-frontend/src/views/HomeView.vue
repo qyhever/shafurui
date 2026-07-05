@@ -1047,8 +1047,8 @@ button {
 
 .video-list.list .video-card {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
-  min-height: 104px;
+  grid-template-columns: 128px minmax(0, 1fr);
+  min-height: 128px;
 }
 
 .video-list.list .video-card:hover {
@@ -1067,8 +1067,8 @@ button {
 }
 
 .video-list.list .thumb-button {
-  height: 100%;
-  min-height: 104px;
+  width: 128px;
+  height: 128px;
   aspect-ratio: auto;
 }
 
@@ -1397,12 +1397,8 @@ button {
   }
 
   .video-list.list .video-card {
-    grid-template-columns: 118px minmax(0, 1fr);
-    min-height: 86px;
-  }
-
-  .video-list.list .thumb-button {
-    min-height: 86px;
+    grid-template-columns: 128px minmax(0, 1fr);
+    min-height: 128px;
   }
 
   .video-list.list .badge {
