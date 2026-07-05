@@ -37,13 +37,13 @@
         </div>
 
         <div class="toolbar" aria-label="视图工具栏">
-          <div class="segmented" aria-label="卡片密度">
+          <div class="segmented" aria-label="展示模式">
             <button
-              :class="{ active: !compact }"
+              :class="{ active: viewMode === 'standard' }"
               type="button"
-              title="标准密度"
-              aria-label="标准密度"
-              @click="compact = false"
+              title="标准模式"
+              aria-label="标准模式"
+              @click="viewMode = 'standard'"
             >
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                 <path
@@ -54,17 +54,34 @@
               </svg>
             </button>
             <button
-              :class="{ active: compact }"
+              :class="{ active: viewMode === 'compact' }"
               type="button"
-              title="紧凑密度"
-              aria-label="紧凑密度"
-              @click="compact = true"
+              title="紧凑模式"
+              aria-label="紧凑模式"
+              @click="viewMode = 'compact'"
             >
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M4 4h5v5H4V4Zm5.5 0h5v5h-5V4ZM15 4h5v5h-5V4ZM4 9.5h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5ZM4 15h5v5H4v-5Zm5.5 0h5v5h-5v-5Zm5.5 0h5v5h-5v-5Z"
                   stroke="currentColor"
                   stroke-width="1.5"
+                />
+              </svg>
+            </button>
+            <button
+              :class="{ active: viewMode === 'list' }"
+              type="button"
+              title="列表模式"
+              aria-label="列表模式"
+              @click="viewMode = 'list'"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 />
               </svg>
             </button>
@@ -192,7 +209,7 @@
                 {{ group.items.length }} 个视频 / {{ groupMinutes(group.items) }} 分钟
               </div>
             </div>
-            <div class="grid" :class="{ compact }">
+            <div class="video-list" :class="viewMode">
               <article v-for="video in group.items" :key="video.id" class="video-card">
                 <button
                   class="thumb-button"
@@ -220,7 +237,31 @@
                   </span>
                   <span class="duration">{{ formatDuration(video.durationSec) }}</span>
                 </button>
-                <div class="card-body">
+                <div v-if="viewMode === 'list'" class="list-body">
+                  <div class="list-primary">
+                    <p class="filename" :title="video.filename">{{ video.filename }}</p>
+                    <code :title="video.relativePath">{{ video.relativePath }}</code>
+                  </div>
+                  <div class="list-meta">
+                    <div>
+                      <span>拍摄</span>
+                      <b>{{ formatShotTime(video) }}</b>
+                    </div>
+                    <div>
+                      <span>来源</span>
+                      <b>{{ sourceLabel(video) }}</b>
+                    </div>
+                    <div>
+                      <span>分辨率</span>
+                      <b>{{ resolution(video) }}</b>
+                    </div>
+                    <div>
+                      <span>时长</span>
+                      <b>{{ formatDuration(video.durationSec) }}</b>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="card-body">
                   <p class="filename" :title="video.filename">{{ video.filename }}</p>
                   <div class="meta">
                     <span>{{ formatShotTime(video) }}</span>
@@ -306,6 +347,7 @@ defineOptions({
 type AlbumVideo = VideoItem & {
   hue: number;
 };
+type ViewMode = "standard" | "compact" | "list";
 
 const sampleVideos: AlbumVideo[] = [
   sample("IMG_20260702_184522.mp4", "2026-07-02T18:45:22+08:00", 84, 3840, 2160, "iPhone", 12),
@@ -342,7 +384,7 @@ const userStore = useUserStore();
 const keyword = ref("");
 const monthFilter = ref("all");
 const sourceFilter = ref("all");
-const compact = ref(false);
+const viewMode = ref<ViewMode>("standard");
 const loading = ref(true);
 const dataSource = ref("sample");
 const scanTime = ref("--:--");
@@ -969,15 +1011,20 @@ button {
   font-size: 13px;
 }
 
-.grid {
+.video-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   padding-top: 14px;
 }
 
-.grid.compact {
+.video-list.compact {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.video-list.list {
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .video-card {
@@ -998,6 +1045,16 @@ button {
   border-color: var(--dark);
 }
 
+.video-list.list .video-card {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  min-height: 104px;
+}
+
+.video-list.list .video-card:hover {
+  transform: translateY(-1px);
+}
+
 .thumb-button {
   width: 100%;
   border: 0;
@@ -1007,6 +1064,12 @@ button {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+}
+
+.video-list.list .thumb-button {
+  height: 100%;
+  min-height: 104px;
+  aspect-ratio: auto;
 }
 
 .thumb-button img,
@@ -1089,6 +1152,60 @@ button {
   padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+.list-body {
+  min-width: 0;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(360px, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.list-primary {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.list-primary code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: "Fira Code", monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-meta {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.list-meta div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.list-meta span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.list-meta b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dark);
+  font-family: "Fira Code", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .filename {
@@ -1239,9 +1356,18 @@ button {
     overflow: auto;
   }
 
-  .grid,
-  .grid.compact {
+  .video-list,
+  .video-list.compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .video-list.list {
+    grid-template-columns: 1fr;
+  }
+
+  .list-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
 }
 
@@ -1265,9 +1391,58 @@ button {
     min-width: 0;
   }
 
-  .grid,
-  .grid.compact {
+  .video-list,
+  .video-list.compact {
     grid-template-columns: 1fr;
+  }
+
+  .video-list.list .video-card {
+    grid-template-columns: 118px minmax(0, 1fr);
+    min-height: 86px;
+  }
+
+  .video-list.list .thumb-button {
+    min-height: 86px;
+  }
+
+  .video-list.list .badge {
+    display: none;
+  }
+
+  .video-list.list .play {
+    left: 8px;
+    bottom: 8px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .video-list.list .duration {
+    right: 7px;
+    bottom: 8px;
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+
+  .list-body {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .list-body .filename {
+    font-size: 14px;
+  }
+
+  .list-primary code {
+    display: none;
+  }
+
+  .list-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 10px;
+  }
+
+  .list-meta div:nth-child(3) {
+    display: none;
   }
 
   .group-head {

@@ -24,7 +24,7 @@ func NewVideoController(videoService *service.VideoService) *VideoController {
 // @Tags video
 // @Produce json
 // @Success 200 {object} ResponseData
-// @Router /videos [get]
+// @Router /video [get]
 func (vc *VideoController) ListVideos(c *gin.Context) {
 	result, err := vc.videoService.ListVideos(config.GetVideoDirPath())
 	if err != nil {
