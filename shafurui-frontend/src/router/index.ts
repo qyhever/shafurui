@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
+
+const HOME_PATH = '/home'
+const LOGIN_PATH = '/signin'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      redirect: HOME_PATH,
     },
     {
       path: '/home',
@@ -15,7 +19,7 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/signin',
+      path: LOGIN_PATH,
       name: 'signin',
       component: LoginView,
     },
@@ -28,6 +32,23 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
   ],
+})
+
+router.beforeEach((to) => {
+  const userStore = useUserStore()
+  const hasToken = Boolean(userStore.accessToken)
+  const isLoginPage = to.path === LOGIN_PATH
+
+  if (isLoginPage) {
+    return hasToken ? HOME_PATH : true
+  }
+
+  return hasToken
+    ? true
+    : {
+        path: LOGIN_PATH,
+        query: to.fullPath === HOME_PATH ? undefined : { redirect: to.fullPath },
+      }
 })
 
 export default router
