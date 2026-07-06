@@ -202,8 +202,6 @@ async function submit() {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap");
-
 .login-page {
   --bg: #f6f5f2;
   --panel: #ffffff;
@@ -225,7 +223,8 @@ async function submit() {
     linear-gradient(90deg, rgba(16, 16, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
     linear-gradient(rgba(16, 16, 19, 0.035) 1px, transparent 1px) 0 0 / 44px 44px,
     var(--bg);
-  font-family: "Fira Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 button,
@@ -363,7 +362,7 @@ button {
 
 .metric b {
   display: block;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 21px;
 }
 

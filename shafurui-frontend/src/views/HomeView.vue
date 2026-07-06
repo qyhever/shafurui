@@ -538,7 +538,7 @@ function generatedPoster(date: string, hue: number) {
     <rect width="960" height="540" fill="url(#g)"/>
     <g opacity=".22">${Array.from({ length: 18 }, (_, index) => `<rect x="${index * 66 - 120}" width="16" height="540" fill="${index % 3 === 0 ? "#fff" : "#111"}"/>`).join("")}</g>
     <rect x="48" y="398" width="420" height="64" fill="rgba(255,255,255,.84)"/>
-    <text x="72" y="438" fill="#111113" font-size="32" font-weight="700" font-family="Fira Sans, sans-serif">${date}</text>
+    <text x="72" y="438" fill="#111113" font-size="32" font-weight="700" font-family="PingFang SC, Microsoft YaHei, sans-serif">${date}</text>
   </svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
@@ -643,8 +643,6 @@ function markCoverMissing(id: string) {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap");
-
 .album-page {
   --bg: #f6f5f2;
   --panel: #ffffff;
@@ -663,7 +661,8 @@ function markCoverMissing(id: string) {
     linear-gradient(90deg, rgba(16, 16, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
     linear-gradient(rgba(16, 16, 19, 0.035) 1px, transparent 1px) 0 0 / 44px 44px,
     var(--bg);
-  font-family: "Fira Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 button,
@@ -874,7 +873,7 @@ button {
 
 .stat b {
   display: block;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 23px;
   line-height: 1;
 }
@@ -944,7 +943,7 @@ button {
 }
 
 .date-link span {
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
   opacity: 0.78;
 }
@@ -1022,7 +1021,7 @@ button {
 }
 
 .health-row b {
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #fff;
 }
 
@@ -1047,7 +1046,7 @@ button {
 }
 
 .group-title h3 {
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 20px;
 }
 
@@ -1191,7 +1190,7 @@ button {
   border-radius: 5px;
   background: rgba(17, 17, 19, 0.72);
   color: #fff;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0;
@@ -1204,7 +1203,7 @@ button {
   min-width: 210px;
   padding: 12px 18px;
   background: rgba(255, 255, 255, 0.84);
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-weight: 700;
 }
 
@@ -1230,7 +1229,7 @@ button {
   background: rgba(16, 16, 19, 0.82);
   border-radius: 5px;
   padding: 5px 7px;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
 }
 
@@ -1271,7 +1270,7 @@ button {
   min-width: 0;
   overflow: hidden;
   color: var(--muted);
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1299,7 +1298,7 @@ button {
   min-width: 0;
   overflow: hidden;
   color: var(--dark);
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
   font-weight: 700;
   text-overflow: ellipsis;
@@ -1333,7 +1332,7 @@ button {
 
 .meta code {
   color: var(--dark);
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
 }
 
