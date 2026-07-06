@@ -17,14 +17,14 @@
       <div class="flex-1">
         <h4 class="text-md font-bold text-gray-900">发现新版本</h4>
         <template v-if="versionExtraInfoVisible">
-          <div class="!mt-1 text-sm text-gray-900">
+          <div class="mt-1 text-sm text-gray-900">
             <div class="font-bold">本地版本</div>
             <div class="text-gray-600">
               <div>hash: {{ visibleInfo.oldBuildHash }}</div>
               <div>构建时间: {{ visibleInfo.oldBuildTime }}</div>
             </div>
           </div>
-          <div class="!mt-1 text-sm text-gray-900">
+          <div class="mt-1 text-sm text-gray-900">
             <div class="font-bold">新版本</div>
             <div class="text-gray-600">
               <div>hash: {{ visibleInfo.newBuildHash }}</div>
@@ -32,22 +32,22 @@
             </div>
           </div>
         </template>
-        <p class="!mt-1 text-sm text-gray-600">检测到新版本已发布，建议立即更新以获得最佳体验。</p>
-        <div class="mt-3! flex gap-2">
+        <p class="mt-1 text-sm text-gray-600">检测到新版本已发布，建议立即更新以获得最佳体验。</p>
+        <div class="mt-3 flex gap-2">
           <button
-            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="cursor-pointer inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             @click="handleUpdate"
           >
             立即更新
           </button>
           <button
-            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="cursor-pointer inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             @click="handleLater"
           >
             稍后提醒
           </button>
           <button
-            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600"
+            class="cursor-pointer inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600"
             @click="handleClose"
           >
             忽略
@@ -76,7 +76,7 @@ defineOptions({
   name: 'VersionUpdatePopup',
 })
 
-const visible = ref(false)
+const visible = ref(true)
 const versionExtraInfoVisible = ref(Boolean(localStorage.getItem('versionExtraInfoVisible')))
 const visibleInfo = ref({} as UpdateInfo)
 
