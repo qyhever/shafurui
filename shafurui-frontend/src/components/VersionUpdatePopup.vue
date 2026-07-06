@@ -76,7 +76,7 @@ defineOptions({
   name: 'VersionUpdatePopup',
 })
 
-const visible = ref(true)
+const visible = ref(false)
 const versionExtraInfoVisible = ref(Boolean(localStorage.getItem('versionExtraInfoVisible')))
 const visibleInfo = ref({} as UpdateInfo)
 
