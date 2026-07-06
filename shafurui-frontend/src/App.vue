@@ -1,12 +1,12 @@
 <template>
   <div id="app">
     <router-view />
-    <!-- <UpdatePopup /> -->
+    <VersionUpdatePopup />
   </div>
 </template>
 
 <script setup lang="ts">
-// import UpdatePopup from '@/components/update-popup'
+import VersionUpdatePopup from '@/components/VersionUpdatePopup.vue'
 defineOptions({
   name: 'App',
 })

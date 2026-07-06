@@ -35,7 +35,6 @@ export class VersionChecker {
       buildHash: LOCAL_BUILD_HASH,
       buildTime: LOCAL_BUILD_TIME,
     }
-    console.log('this.metaInfo: ', this.metaInfo)
     // 定期检查版本
     this.runLoopTask()
     window.addEventListener('visibilitychange', () => {
