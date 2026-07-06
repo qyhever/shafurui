@@ -348,6 +348,8 @@
         </div>
       </div>
     </div>
+
+    <t-back-top theme="dark" shape="square" :visible-height="240" :offset="['28px', '28px']" />
   </div>
 </template>
 
