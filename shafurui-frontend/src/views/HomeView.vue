@@ -187,10 +187,6 @@
             </p>
           </div>
           <div class="health" aria-label="扫描状态">
-            <div class="health-row"><span>API</span><b>/api/video</b></div>
-            <div class="health-row">
-              <span>数据源</span><b>{{ dataSource }}</b>
-            </div>
             <div class="health-row">
               <span>最近扫描</span><b>{{ scanTime }}</b>
             </div>
@@ -409,7 +405,6 @@ const monthFilter = ref("all");
 const sourceFilter = ref("all");
 const viewMode = ref<ViewMode>("standard");
 const loading = ref(true);
-const dataSource = ref("sample");
 const scanTime = ref("--:--");
 const currentVideo = ref<AlbumVideo | null>(null);
 const missingCoverIds = ref(new Set<string>());
@@ -477,17 +472,12 @@ async function loadVideos() {
       group.items.map((item) => normalizeVideo(item, group.date)),
     );
     videos.value = items.length > 0 ? items : sampleVideos;
-    dataSource.value = items.length > 0 ? "api" : "sample";
+    scanTime.value = items.length > 0 ? response.scanTime || "--:--" : "--:--";
   } catch (error) {
     console.warn("Failed to load video list, using sample data.", error);
     videos.value = sampleVideos;
-    dataSource.value = "sample";
+    scanTime.value = "--:--";
   } finally {
-    scanTime.value = new Intl.DateTimeFormat("zh-CN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).format(new Date());
     loading.value = false;
   }
 }
@@ -966,7 +956,6 @@ button {
   border-radius: var(--radius);
   background: var(--dark);
   color: #fff;
-  min-height: 172px;
   padding: 22px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

@@ -20,6 +20,7 @@ import (
 )
 
 const videoIndexFilename = "video-index.json"
+const videoScanTimeLayout = "2006-01-02 15:04:05"
 
 var (
 	videoExtensions = map[string]struct{}{
@@ -53,6 +54,7 @@ func (r *VideoRepositoryImpl) RefreshVideos(videoDirPath string) (*model.VideoLi
 	if err != nil {
 		return nil, err
 	}
+	result.ScanTime = time.Now().Format(videoScanTimeLayout)
 	if err := writeVideoIndex(videoDirPath, result); err != nil {
 		return nil, err
 	}
@@ -165,7 +167,10 @@ func cloneVideoListResponse(src *model.VideoListResponse) *model.VideoListRespon
 			Items: items,
 		}
 	}
-	return &model.VideoListResponse{Groups: groups}
+	return &model.VideoListResponse{
+		ScanTime: src.ScanTime,
+		Groups:   groups,
+	}
 }
 
 func buildVideoItem(root, path string) (model.VideoItem, error) {

@@ -3,7 +3,8 @@ package model
 import "time"
 
 type VideoListResponse struct {
-	Groups []VideoGroup `json:"groups"`
+	ScanTime string       `json:"scanTime"`
+	Groups   []VideoGroup `json:"groups"`
 }
 
 type VideoRefreshResponse struct {

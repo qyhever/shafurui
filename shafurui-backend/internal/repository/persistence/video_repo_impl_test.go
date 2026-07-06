@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"shafurui/internal/model"
 )
@@ -41,6 +42,8 @@ func TestVideoRepositoryRefreshVideosScansAndWritesIndex(t *testing.T) {
 	}
 
 	assertVideoCount(t, result, 1)
+	assertScanTime(t, result.ScanTime)
+
 	indexPath := filepath.Join(root, videoIndexFilename)
 	if _, err := os.Stat(indexPath); err != nil {
 		t.Fatalf("stat index file: %v", err)
@@ -55,6 +58,10 @@ func TestVideoRepositoryRefreshVideosScansAndWritesIndex(t *testing.T) {
 		t.Fatalf("unmarshal index file: %v", err)
 	}
 	assertVideoCount(t, &indexed, 1)
+	if indexed.ScanTime != result.ScanTime {
+		t.Fatalf("indexed scanTime = %q, want %q", indexed.ScanTime, result.ScanTime)
+	}
+	assertScanTime(t, indexed.ScanTime)
 }
 
 func TestVideoRepositoryListVideosUsesCacheAfterRefresh(t *testing.T) {
@@ -65,7 +72,8 @@ func TestVideoRepositoryListVideosUsesCacheAfterRefresh(t *testing.T) {
 	}
 
 	repo := &VideoRepositoryImpl{}
-	if _, err := repo.RefreshVideos(root); err != nil {
+	refreshed, err := repo.RefreshVideos(root)
+	if err != nil {
 		t.Fatalf("RefreshVideos() error = %v", err)
 	}
 	if err := os.Remove(videoPath); err != nil {
@@ -77,6 +85,10 @@ func TestVideoRepositoryListVideosUsesCacheAfterRefresh(t *testing.T) {
 		t.Fatalf("ListVideos() error = %v", err)
 	}
 	assertVideoCount(t, result, 1)
+	if result.ScanTime != refreshed.ScanTime {
+		t.Fatalf("ListVideos() scanTime = %q, want %q", result.ScanTime, refreshed.ScanTime)
+	}
+	assertScanTime(t, result.ScanTime)
 }
 
 func TestVideoRepositoryLoadIndexOnStartup(t *testing.T) {
@@ -85,7 +97,8 @@ func TestVideoRepositoryLoadIndexOnStartup(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "2024-05-06_070809.mp4"), []byte("video"), 0o644); err != nil {
 		t.Fatalf("write video file: %v", err)
 	}
-	if _, err := repo.RefreshVideos(root); err != nil {
+	refreshed, err := repo.RefreshVideos(root)
+	if err != nil {
 		t.Fatalf("RefreshVideos() error = %v", err)
 	}
 
@@ -96,6 +109,10 @@ func TestVideoRepositoryLoadIndexOnStartup(t *testing.T) {
 		t.Fatalf("ListVideos() error = %v", err)
 	}
 	assertVideoCount(t, result, 1)
+	if result.ScanTime != refreshed.ScanTime {
+		t.Fatalf("ListVideos() scanTime = %q, want %q", result.ScanTime, refreshed.ScanTime)
+	}
+	assertScanTime(t, result.ScanTime)
 }
 
 func assertVideoCount(t *testing.T, result *model.VideoListResponse, want int) {
@@ -107,5 +124,16 @@ func assertVideoCount(t *testing.T, result *model.VideoListResponse, want int) {
 	}
 	if got != want {
 		t.Fatalf("video count = %d, want %d", got, want)
+	}
+}
+
+func assertScanTime(t *testing.T, value string) {
+	t.Helper()
+
+	if value == "" {
+		t.Fatal("scanTime is empty")
+	}
+	if _, err := time.Parse(videoScanTimeLayout, value); err != nil {
+		t.Fatalf("scanTime %q cannot be parsed with %q: %v", value, videoScanTimeLayout, err)
 	}
 }

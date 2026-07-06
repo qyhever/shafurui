@@ -21,6 +21,7 @@ export interface VideoGroup {
 }
 
 export interface VideoListResponse {
+  scanTime?: string;
   groups: VideoGroup[];
 }
 
