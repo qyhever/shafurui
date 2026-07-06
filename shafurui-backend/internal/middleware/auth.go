@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -64,7 +63,6 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		fmt.Printf("token %v\n", token)
 
 		// 解析并验证 token
 		claims, err := jwtpkg.ParseToken(token)

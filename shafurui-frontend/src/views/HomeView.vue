@@ -158,18 +158,23 @@
           </div>
         </div>
 
-        <nav class="date-nav" aria-label="日期导航">
-          <button
-            v-for="(group, index) in groupedVideos"
-            :key="group.date"
-            class="date-link"
-            :class="{ active: index === 0 }"
-            type="button"
-            @click="scrollToGroup(group.date)"
-          >
-            <strong>{{ dateLabel(group.date) }}</strong>
-            <span>{{ group.items.length }}</span>
-          </button>
+        <nav class="date-nav" aria-label="日期导航" :aria-busy="loading">
+          <template v-if="loading">
+            <HomeSkeleton section="dates" />
+          </template>
+          <template v-else>
+            <button
+              v-for="(group, index) in groupedVideos"
+              :key="group.date"
+              class="date-link"
+              :class="{ active: index === 0 }"
+              type="button"
+              @click="scrollToGroup(group.date)"
+            >
+              <strong>{{ dateLabel(group.date) }}</strong>
+              <span>{{ group.items.length }}</span>
+            </button>
+          </template>
         </nav>
       </aside>
 
@@ -195,7 +200,7 @@
           </div>
         </section>
 
-        <div v-if="loading" class="empty">正在加载视频列表...</div>
+        <HomeSkeleton v-if="loading" section="groups" :view-mode="viewMode" />
         <template v-else>
           <section
             v-for="group in groupedVideos"
@@ -355,6 +360,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { DialogPlugin } from "tdesign-vue-next";
 import { getVideoList, type VideoItem } from "@/api/video";
+import HomeSkeleton from "@/components/HomeSkeleton.vue";
 import { useUserStore } from "@/stores/user";
 
 defineOptions({
