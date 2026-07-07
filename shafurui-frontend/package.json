@@ -1,12 +1,14 @@
 {
-  "name": "vue3-media",
+  "name": "shafurui-frontend",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "start": "npm run dev",
+    "check": "node -e \"const v=process.versions.node.split('.').map(Number); const ok=(v[0]===22&&v[1]>=18)||(v[0]===24&&v[1]>=12)||v[0]>24; if(!ok){console.error('❌ 错误: 需要Node.js版本^22.18.0或>=24.12.0，当前版本为'+process.versions.node); process.exit(1)} console.log('✓ Node.js版本'+process.versions.node+'符合要求')\"",
+    "preinstall": "npx only-allow pnpm && npm run check",
+    "predev": "npm run check",
     "dev": "vite",
+    "start": "npm run dev",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -50,6 +52,7 @@
     "vue-tsc": "^3.3.5"
   },
   "engines": {
-    "node": "^22.18.0 || >=24.12.0"
+    "node": "^22.18.0 || >=24.12.0",
+    "npm": ">=10.0.0"
   }
 }
