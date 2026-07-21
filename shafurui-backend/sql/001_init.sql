@@ -1,41 +1,20 @@
-CREATE TABLE IF NOT EXISTS admins (
-    id BIGINT NOT NULL PRIMARY KEY,
-    username VARCHAR(64) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    display_name VARCHAR(128) NOT NULL,
-    status VARCHAR(32) NOT NULL DEFAULT 'active',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at DATETIME NULL DEFAULT NULL,
-    UNIQUE KEY uk_admins_username (username)
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(128) NOT NULL,
-    phone VARCHAR(32) NOT NULL DEFAULT '',
-    password_hash VARCHAR(255) NOT NULL,
-    nickname VARCHAR(128) NOT NULL,
-    avatar_url VARCHAR(512) NOT NULL DEFAULT '',
-    status VARCHAR(32) NOT NULL DEFAULT 'active',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at DATETIME NULL DEFAULT NULL,
-    UNIQUE KEY uk_users_email (email)
-);
-
--- `register / reset_password`
-CREATE TABLE IF NOT EXISTS validation_codes (
-    email VARCHAR(128) NOT NULL,
-    type VARCHAR(32) NOT NULL DEFAULT 'register',
-    code VARCHAR(6) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    last_sent_at DATETIME NULL DEFAULT NULL,
-    send_window_started_at DATETIME NULL DEFAULT NULL,
-    send_count_in_window INT NOT NULL DEFAULT 1,
-    used_at DATETIME NULL DEFAULT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (email, type),
-    KEY idx_register_codes_expires_at (expires_at)
-);
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user` (
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier',
+  `username` varchar(50) NOT NULL,
+  `nickname` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL COMMENT 'Hashed password',
+  `deletedAt` timestamp NULL DEFAULT NULL COMMENT '删除时间',
+  `avatar` varchar(255) DEFAULT NULL COMMENT '头像URL',
+  `isEnabled` tinyint NOT NULL DEFAULT '1' COMMENT '启用/禁用',
+  `isSystemDefault` tinyint NOT NULL DEFAULT '0' COMMENT '系统默认',
+  `email` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_username` (`username`),
+  UNIQUE KEY `uk_user_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;

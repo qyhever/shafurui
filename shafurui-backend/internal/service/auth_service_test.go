@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"regexp"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"shafurui/internal/config"
 	"shafurui/internal/model"
+	passwordpkg "shafurui/internal/pkg/password"
 )
 
 type fakeTelegramSender struct {
@@ -36,6 +38,34 @@ func (f *fakeTelegramSender) messageCount() int {
 	return len(f.messages)
 }
 
+type fakeUserRepository struct {
+	usersByLogin map[string]*model.User
+	usersByID    map[uint64]*model.User
+	err          error
+}
+
+func (r *fakeUserRepository) FindEnabledByLogin(_ context.Context, login string) (*model.User, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	user, ok := r.usersByLogin[login]
+	if !ok {
+		return nil, sql.ErrNoRows
+	}
+	return user, nil
+}
+
+func (r *fakeUserRepository) FindEnabledByID(_ context.Context, userID uint64) (*model.User, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	user, ok := r.usersByID[userID]
+	if !ok {
+		return nil, sql.ErrNoRows
+	}
+	return user, nil
+}
+
 func setupAuthServiceConfig(t *testing.T) {
 	t.Helper()
 
@@ -46,25 +76,82 @@ func setupAuthServiceConfig(t *testing.T) {
 			AccessExpiresIn:  "1h",
 			RefreshExpiresIn: "24h",
 		},
-		Auth: config.AuthConfig{
-			DefaultUser: config.DefaultUserConfig{
-				UserID:   123,
-				Username: "admin",
-				Password: "correct-password",
-				Nickname: "Admin",
-			},
-		},
 	}
 	t.Cleanup(func() {
 		config.GlobalConfig = previous
 	})
 }
 
+func newAuthTestUser(t *testing.T) *model.User {
+	t.Helper()
+
+	hashedPassword, err := passwordpkg.Hash("correct-password")
+	if err != nil {
+		t.Fatalf("Hash() error = %v", err)
+	}
+	return &model.User{
+		ID:       123,
+		Username: "admin",
+		Nickname: "Admin",
+		Password: hashedPassword,
+		Email:    "admin@example.com",
+	}
+}
+
+func newAuthTestRepository(user *model.User) *fakeUserRepository {
+	return &fakeUserRepository{
+		usersByLogin: map[string]*model.User{
+			user.Username: user,
+			user.Email:    user,
+		},
+		usersByID: map[uint64]*model.User{
+			user.ID: user,
+		},
+	}
+}
+
+func TestAuthLoginWithUsername(t *testing.T) {
+	setupAuthServiceConfig(t)
+
+	user := newAuthTestUser(t)
+	service := NewAuthService(newAuthTestRepository(user), nil)
+
+	resp, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
+		Username: " admin ",
+		Password: " correct-password ",
+	})
+	if err != nil {
+		t.Fatalf("AuthLogin() error = %v", err)
+	}
+	if resp.AccessToken == "" || resp.RefreshToken == "" {
+		t.Fatal("AuthLogin() returned empty token")
+	}
+}
+
+func TestAuthLoginWithEmail(t *testing.T) {
+	setupAuthServiceConfig(t)
+
+	user := newAuthTestUser(t)
+	service := NewAuthService(newAuthTestRepository(user), nil)
+
+	resp, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
+		Username: "admin@example.com",
+		Password: "correct-password",
+	})
+	if err != nil {
+		t.Fatalf("AuthLogin() error = %v", err)
+	}
+	if resp.AccessToken == "" || resp.RefreshToken == "" {
+		t.Fatal("AuthLogin() returned empty token")
+	}
+}
+
 func TestAuthLoginSendsTelegramNotification(t *testing.T) {
 	setupAuthServiceConfig(t)
 
+	user := newAuthTestUser(t)
 	sender := &fakeTelegramSender{sent: make(chan string, 1)}
-	service := NewAuthService(sender)
+	service := NewAuthService(newAuthTestRepository(user), sender)
 
 	resp, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
 		Username: "admin",
@@ -106,8 +193,9 @@ func TestAuthLoginSendsTelegramNotification(t *testing.T) {
 func TestAuthLoginIgnoresTelegramNotificationError(t *testing.T) {
 	setupAuthServiceConfig(t)
 
+	user := newAuthTestUser(t)
 	sender := &fakeTelegramSender{sent: make(chan string, 1), err: errors.New("send failed")}
-	service := NewAuthService(sender)
+	service := NewAuthService(newAuthTestRepository(user), sender)
 
 	resp, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
 		Username: "admin",
@@ -129,6 +217,7 @@ func TestAuthLoginIgnoresTelegramNotificationError(t *testing.T) {
 func TestAuthLoginDoesNotWaitForTelegramNotification(t *testing.T) {
 	setupAuthServiceConfig(t)
 
+	user := newAuthTestUser(t)
 	entered := make(chan struct{})
 	release := make(chan struct{})
 	sender := telegramMessageSenderFunc(func(context.Context, string) error {
@@ -140,7 +229,7 @@ func TestAuthLoginDoesNotWaitForTelegramNotification(t *testing.T) {
 		close(release)
 	})
 
-	service := NewAuthService(sender)
+	service := NewAuthService(newAuthTestRepository(user), sender)
 	done := make(chan struct{})
 	go func() {
 		resp, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
@@ -171,12 +260,34 @@ func TestAuthLoginDoesNotWaitForTelegramNotification(t *testing.T) {
 func TestAuthLoginDoesNotSendTelegramNotificationForInvalidCredentials(t *testing.T) {
 	setupAuthServiceConfig(t)
 
+	user := newAuthTestUser(t)
 	sender := &fakeTelegramSender{}
-	service := NewAuthService(sender)
+	service := NewAuthService(newAuthTestRepository(user), sender)
 
 	_, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
 		Username: "admin",
 		Password: "wrong-password",
+	})
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("AuthLogin() error = %v, want %v", err, ErrInvalidCredentials)
+	}
+	if count := sender.messageCount(); count != 0 {
+		t.Fatalf("telegram messages = %d, want 0", count)
+	}
+}
+
+func TestAuthLoginReturnsInvalidCredentialsForMissingUser(t *testing.T) {
+	setupAuthServiceConfig(t)
+
+	sender := &fakeTelegramSender{}
+	service := NewAuthService(&fakeUserRepository{
+		usersByLogin: map[string]*model.User{},
+		usersByID:    map[uint64]*model.User{},
+	}, sender)
+
+	_, err := service.AuthLogin(context.Background(), model.AuthLoginRequest{
+		Username: "disabled@example.com",
+		Password: "correct-password",
 	})
 	if !errors.Is(err, ErrInvalidCredentials) {
 		t.Fatalf("AuthLogin() error = %v, want %v", err, ErrInvalidCredentials)

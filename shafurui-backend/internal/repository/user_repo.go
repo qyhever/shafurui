@@ -1,7 +1,12 @@
 package repository
 
-import "shafurui/internal/model"
+import (
+	"context"
+
+	"shafurui/internal/model"
+)
 
 type UserRepository interface {
-	GetCurrentUserInfo() (*model.UserInfoResponse, error)
+	FindEnabledByLogin(ctx context.Context, login string) (*model.User, error)
+	FindEnabledByID(ctx context.Context, userID uint64) (*model.User, error)
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"shafurui/internal/middleware"
 	"shafurui/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,19 @@ func NewUserController(userService *service.UserService) *UserController {
 // @Success 200 {object} SwaggerUserInfoResponse
 // @Router /user/info [get]
 func (uc *UserController) GetCurrentUserInfo(c *gin.Context) {
-	result, err := uc.userService.GetCurrentUserInfo()
+	rawUserID, ok := c.Get(middleware.ContextUserIDKey)
+	if !ok {
+		ResponseFailed(c, CodeInvalidToken)
+		return
+	}
+
+	userID, ok := rawUserID.(uint64)
+	if !ok || userID == 0 {
+		ResponseFailed(c, CodeInvalidToken)
+		return
+	}
+
+	result, err := uc.userService.GetCurrentUserInfo(c.Request.Context(), userID)
 	if err != nil {
 		zap.L().Error("get current user info failed", zap.Error(err))
 		ResponseFailed(c, CodeServerBusy)

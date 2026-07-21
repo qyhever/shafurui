@@ -10,6 +10,7 @@ import (
 	"shafurui/internal/config"
 	"shafurui/internal/controller"
 	"shafurui/internal/middleware"
+	"shafurui/internal/pkg/db"
 	"shafurui/internal/pkg/telegram"
 	"shafurui/internal/repository/persistence"
 	"shafurui/internal/service"
@@ -21,7 +22,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter() (*gin.Engine, error) {
 	isProd := config.IsProduction()
 	// Gin 开启生产模式(默认是debug模式，会输出大量调试日志)
 	if isProd {
@@ -38,19 +39,25 @@ func SetupRouter() *gin.Engine {
 
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
+	mysqlDB, err := db.OpenMySQLFromConfig(config.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	userRepo := persistence.NewUserRepository(mysqlDB)
+
 	tgConfig := config.GetTelegramConfig()
 	var telegramSender service.TelegramMessageSender
 	if strings.TrimSpace(tgConfig.BotToken) != "" && strings.TrimSpace(tgConfig.ChatID) != "" {
 		telegramSender = telegram.NewClient(tgConfig.BotToken, tgConfig.ChatID)
 	}
-	authService := service.NewAuthService(telegramSender)
+	authService := service.NewAuthService(userRepo, telegramSender)
 	authController := controller.NewAuthController(authService)
 
 	metaController := controller.NewMetaController()
 	appRepo := persistence.NewAppRepository()
 	appService := service.NewAppService(appRepo)
 	appController := controller.NewAppController(appService)
-	userRepo := persistence.NewUserRepository()
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 	videoRepo := persistence.NewVideoRepository()
@@ -88,5 +95,5 @@ func SetupRouter() *gin.Engine {
 			"msg": "404",
 		})
 	})
-	return r
+	return r, nil
 }

@@ -15,12 +15,12 @@ var ErrMySQLDSNRequired = errors.New("mysql dsn is required")
 
 func OpenMySQLFromConfig(cfg *config.Config) (*sql.DB, error) {
 	if cfg == nil {
-		return nil, nil
+		return nil, ErrMySQLDSNRequired
 	}
 
 	dsn := config.BuildMySQLDSN(cfg)
 	if strings.TrimSpace(dsn) == "" {
-		return nil, nil
+		return nil, ErrMySQLDSNRequired
 	}
 
 	return OpenMySQL(dsn)

@@ -2,14 +2,17 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
 
-	"shafurui/internal/config"
 	"shafurui/internal/domain"
 	"shafurui/internal/model"
 	jwtpkg "shafurui/internal/pkg/jwt"
+	passwordpkg "shafurui/internal/pkg/password"
+	"shafurui/internal/repository"
 
 	"go.uber.org/zap"
 )
@@ -19,11 +22,13 @@ type TelegramMessageSender interface {
 }
 
 type AuthService struct {
+	userRepo       repository.UserRepository
 	telegramSender TelegramMessageSender
 }
 
-func NewAuthService(telegramSender TelegramMessageSender) *AuthService {
+func NewAuthService(userRepo repository.UserRepository, telegramSender TelegramMessageSender) *AuthService {
 	return &AuthService{
+		userRepo:       userRepo,
 		telegramSender: telegramSender,
 	}
 }
@@ -40,32 +45,35 @@ func (s *AuthService) AuthLogin(ctx context.Context, req model.AuthLoginRequest)
 		return nil, ErrInvalidCredentials
 	}
 
-	cfg := config.GetConfig()
-	if cfg == nil {
+	user, err := s.userRepo.FindEnabledByLogin(ctx, username)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrInvalidCredentials
 	}
-
-	user := cfg.Auth.DefaultUser
-	if user.UserID <= 0 ||
-		strings.TrimSpace(user.Username) == "" ||
-		user.Password == "" ||
-		username != strings.TrimSpace(user.Username) ||
-		password != user.Password {
-		return nil, ErrInvalidCredentials
-	}
-
-	accessToken, refreshToken, err := jwtpkg.GenToken(uint64(user.UserID))
 	if err != nil {
 		return nil, err
 	}
-	s.notifyLoginSuccessAsync(ctx, user)
+	if user == nil || user.ID == 0 || strings.TrimSpace(user.Password) == "" {
+		return nil, ErrInvalidCredentials
+	}
+	if err := passwordpkg.Compare(user.Password, password); err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	accessToken, refreshToken, err := jwtpkg.GenToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Username == "charon" {
+		s.notifyLoginSuccessAsync(ctx, user)
+	}
 	return &model.AuthLoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (s *AuthService) notifyLoginSuccessAsync(ctx context.Context, user config.DefaultUserConfig) {
+func (s *AuthService) notifyLoginSuccessAsync(ctx context.Context, user *model.User) {
 	if s.telegramSender == nil {
 		return
 	}
@@ -73,7 +81,7 @@ func (s *AuthService) notifyLoginSuccessAsync(ctx context.Context, user config.D
 	message := strings.Join([]string{
 		"sfr: 用户登录成功",
 		"用户名: " + strings.TrimSpace(user.Username),
-		"用户ID: " + strconv.FormatInt(user.UserID, 10),
+		"用户ID: " + strconv.FormatUint(user.ID, 10),
 		"时间: " + time.Now().Format("2006-01-02 15:04:05"),
 	}, "\n")
 	go func() {
