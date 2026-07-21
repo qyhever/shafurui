@@ -36,3 +36,7 @@ auth:
     username: "foo"
     password: "foo123"
     nickname: "奔跑的椰子"
+
+tg:
+  bot_token: "" # TG机器人Token
+  chat_id: ""   # TG聊天ID

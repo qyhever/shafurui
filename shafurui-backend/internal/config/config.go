@@ -20,6 +20,7 @@ type Config struct {
 	Database     DatabaseConfig `mapstructure:"database"`
 	JWT          JWTConfig      `mapstructure:"jwt"`
 	Auth         AuthConfig     `mapstructure:"auth"`
+	TG           TelegramConfig `mapstructure:"tg"`
 }
 
 // ServerConfig 服务器配置
@@ -61,6 +62,12 @@ type JWTConfig struct {
 type AuthConfig struct {
 	Whitelist   []string          `mapstructure:"whitelist"`
 	DefaultUser DefaultUserConfig `mapstructure:"default_user"`
+}
+
+// TelegramConfig Telegram 机器人配置。
+type TelegramConfig struct {
+	BotToken string `mapstructure:"bot_token"`
+	ChatID   string `mapstructure:"chat_id"`
 }
 
 type ThirdPartyConfig struct {
@@ -172,6 +179,8 @@ func bindEnvVars(loader *viper.Viper) {
 	loader.BindEnv("auth.default_user.password", "SHAFURUI_AUTH_DEFAULT_USER_PASSWORD")
 	loader.BindEnv("auth.default_user.nickname", "SHAFURUI_AUTH_DEFAULT_USER_NICKNAME")
 
+	loader.BindEnv("tg.bot_token", "BLUESPOT_TG_BOT_TOKEN")
+	loader.BindEnv("tg.chat_id", "BLUESPOT_TG_CHAT_ID")
 }
 
 func readRequiredConfig(loader *viper.Viper, name string) error {
@@ -217,6 +226,14 @@ func GetVideoBaseURL() string {
 		return ""
 	}
 	return GlobalConfig.VideoBaseURL
+}
+
+// GetTelegramConfig 获取 Telegram 机器人配置。
+func GetTelegramConfig() TelegramConfig {
+	if GlobalConfig == nil {
+		return TelegramConfig{}
+	}
+	return GlobalConfig.TG
 }
 
 // GetServerAddr 获取服务器地址

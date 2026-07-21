@@ -10,6 +10,7 @@ import (
 	"shafurui/internal/config"
 	"shafurui/internal/controller"
 	"shafurui/internal/middleware"
+	"shafurui/internal/pkg/telegram"
 	"shafurui/internal/repository/persistence"
 	"shafurui/internal/service"
 
@@ -37,7 +38,12 @@ func SetupRouter() *gin.Engine {
 
 	fmt.Printf("Go Version %v\n", runtime.Version())
 
-	authService := service.NewAuthService()
+	tgConfig := config.GetTelegramConfig()
+	var telegramSender service.TelegramMessageSender
+	if strings.TrimSpace(tgConfig.BotToken) != "" && strings.TrimSpace(tgConfig.ChatID) != "" {
+		telegramSender = telegram.NewClient(tgConfig.BotToken, tgConfig.ChatID)
+	}
+	authService := service.NewAuthService(telegramSender)
 	authController := controller.NewAuthController(authService)
 
 	metaController := controller.NewMetaController()
